@@ -374,6 +374,7 @@ impl Block {
             })
     }
 
+    //this should be replaced with min_squares and return a vector of the bottommost squares
     pub fn min_square(&self, x: isize) -> Square {
         self.squares.iter().filter(|square| square.pos.0 == x).fold(
             self.squares[0],
@@ -388,39 +389,46 @@ impl Block {
     }
 
     pub fn max_drop(&self, board: &[Square]) -> isize {
-        let (min_x, max_x) = self
-            .squares
-            .iter()
-            .fold((X_SQUARES, 0), |(min, max), current| {
-                let current_x = current.pos.0;
-                if current_x < min {
-                    (current_x, max)
-                } else if current_x > max {
-                    (min, current_x)
-                } else {
-                    (min, max)
-                }
-            });
+        // this is probably only faster if the blocks are made of like 20 squares or more
 
-        let potential_max = (min_x..=max_x).fold(Y_SQUARES, |max_dist, x| {
-            let square_max = self.min_square(x).max_y_translate(board);
+        // let (min_x, max_x) = self
+        //     .squares
+        //     .iter()
+        //     .fold((X_SQUARES, 0), |(min, max), current| {
+        //         let current_x = current.pos.0;
+        //         if current_x < min {
+        //             (current_x, max)
+        //         } else if current_x > max {
+        //             (min, current_x)
+        //         } else {
+        //             (min, max)
+        //         }
+        //     });
+
+        // let potential_max = (min_x..=max_x).fold(Y_SQUARES, |max_dist, x| {
+        //     let square_max = self.min_square(x).max_y_translate(board);
+        //     if square_max < max_dist {
+        //         square_max
+        //     } else {
+        //         max_dist
+        //     }
+        // });
+
+
+        // for i in (0..potential_max).rev() {
+        //     if self.translate(0, i).is_valid(board) {
+        //         return i;
+        //     };
+        // }
+        // return 0;
+
+        self.squares.iter().fold(Y_SQUARES, |max_dist, square|{
+            let square_max = square.max_y_translate(board);
             if square_max < max_dist {
                 square_max
             } else {
                 max_dist
             }
-        });
-
-        // let potential_max = self.squares.iter().fold(Y_SQUARES, |max_dist, square|{
-        //     let square_max = square.max_y_translate(board);
-        //     if square_max < max_dist { square_max } else { max_dist }
-        // });
-
-        for i in (0..=potential_max).rev() {
-            if self.translate(0, i).is_valid(board) {
-                return i;
-            };
-        }
-        return 0;
+        }) - 1
     }
 }

@@ -24,7 +24,7 @@ const Y_SQUARES: isize = 30;
 
 const SQUARE_SIZE: f32 = SCREEN_HEIGHT / Y_SQUARES as f32;
 
-const TICK_INTERVAL: usize = 120;
+const TICK_INTERVAL: usize = 30;
 
 #[derive(Clone)]
 struct MainState {
@@ -60,8 +60,9 @@ impl MainState {
     fn reset(&mut self) {}
 
     fn try_translate(&mut self, x: isize, y: isize) {
-        if self.current_block.translate(x, y).is_valid(&self.squares) {
-            self.current_block = self.current_block.translate(x, y)
+        let translated = self.current_block.translate(x, y);
+        if translated.is_valid(&self.squares) {
+            self.current_block = translated;
         }
     }
 }
