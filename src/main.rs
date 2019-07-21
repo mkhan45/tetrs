@@ -9,7 +9,7 @@ use ggez::{
 use std::convert::TryInto;
 
 extern crate rand;
-use rand::Rng;
+use rand::{Rng, thread_rng};
 
 mod block;
 use block::*;
@@ -36,12 +36,18 @@ impl MainState {
     fn new() -> Self {
         let squares = Vec::with_capacity((X_SQUARES * Y_SQUARES).try_into().unwrap());
 
-        let current_block = Block::new(BlockType::Line, Orientation::Up).translate(X_SQUARES/2, 0);
+        let current_block = Block::new(BlockType::Line, Orientation::Up).translate(X_SQUARES as i16/2, 0);
 
         MainState{squares, current_block}
     }
 
     fn reset(&mut self) {
+    }
+
+    fn try_translate(&mut self, x: i16, y: i16){
+        if self.current_block.translate(x, y).is_valid(&self.squares){
+            self.current_block = self.current_block.translate(x, y) 
+        }
     }
 }
 
@@ -52,7 +58,7 @@ impl EventHandler for MainState{
                 let mut new_square = current_square.rect.clone();
                 new_square.translate([0., SQUARE_SIZE]);
                 new_square.y + 0.5 >= SCREEN_HEIGHT || 
-                self.squares.iter().any(|&board_square| new_square.overlaps(&board_square.rect))
+                    self.squares.iter().any(|&board_square| new_square.overlaps(&board_square.rect))
             });
 
             if should_translate { 
@@ -60,8 +66,11 @@ impl EventHandler for MainState{
                     square.rect.translate([0., SQUARE_SIZE]);
                 });
             } else {
+                let types = [BlockType::Line, BlockType::Square];
+                let blocktype = types[(rand::random::<f32>() * types.len() as f32) as usize];
+
                 self.squares.append(&mut self.current_block.squares);
-                self.current_block = Block::new(BlockType::Square, Orientation::Up);
+                self.current_block = Block::new(blocktype, Orientation::Up);
             }
         }
         Ok(())
@@ -87,6 +96,20 @@ impl EventHandler for MainState{
 
         Ok(())
     }
+
+    fn key_down_event(&mut self, _ctx: &mut Context, keycode: keyboard::KeyCode, _keymods: keyboard::KeyMods, _repeat: bool){
+        match keycode{
+            KeyCode::Left => self.try_translate(-1, 0),
+            KeyCode::Right => self.try_translate(1, 0),
+            KeyCode::Down => self.try_translate(0, 2),
+            KeyCode::Space => {
+                self.try_translate(0, self.current_block.max_drop(&self.squares) - 1);
+                // println!("{}", self.current_block.max_drop(&self.squares));
+            },
+            _ => {},
+        }
+    }
+
 }
 
 fn main() -> GameResult{
