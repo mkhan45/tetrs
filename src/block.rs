@@ -10,31 +10,38 @@ const COLL_SIZE: f32 = SQUARE_SIZE - 0.05;
 use std::convert::TryInto;
 
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct Square {
     pub rect: Rect,
+    pub pos: (isize, isize),
     pub color: Color,
 }
 
 impl Square{
-    fn bottom(x: f32) -> Self{
+    fn bottom(x: isize) -> Self{
         Square{
-            rect: Rect::new(x, SCREEN_HEIGHT, COLL_SIZE, COLL_SIZE),
+            rect: Rect::new(x as f32 * SQUARE_SIZE, SCREEN_HEIGHT, SQUARE_SIZE, SQUARE_SIZE),
+            pos: (x, Y_SQUARES),
             color: Color::new(1.0, 1.0, 1.0, 1.0),
         }
     }
 
-    fn board_pos(&self) -> (i32, i32){
-        ((self.rect.x / SQUARE_SIZE) as i32, (self.rect.y / SQUARE_SIZE) as i32)
+    pub fn max_y_translate(&self, board: &Vec<Square>) -> isize {
+        let max_square = board.iter().filter(|square| square.pos.0 == self.pos.0)
+            .fold(Square::bottom(self.pos.0), |max_square, current_square|{
+                if current_square.pos.1 <= max_square.pos.1 { *current_square } else { max_square }
+            });
+        max_square.pos.1 - self.pos.1
     }
 
-    pub fn max_y_translate(&self, board: &Vec<Square>) -> i16 {
-        let max_square = board.iter().filter(|square| square.rect.x == self.rect.x)
-            .fold(Square::bottom(self.rect.x), |max_square, current_square|{
-                println!("{}", max_square.board_pos().1);
-                if current_square.rect.y <= max_square.rect.y { *current_square } else { max_square }
-            });
-        (max_square.board_pos().1 - self.board_pos().1 - 1).try_into().unwrap()
+    pub fn translate(&self, x: isize, y: isize) -> Square {
+        let mut new_rect = self.rect.clone();
+        new_rect.translate([x as f32 * SQUARE_SIZE, y as f32 * SQUARE_SIZE]);
+        Square{
+            rect: new_rect,
+            pos: ((self.pos.0 as isize + x) as isize, (self.pos.1 as isize + y) as isize),
+            color: self.color,
+        }
     }
 }
 
@@ -68,9 +75,21 @@ impl Block {
     pub fn new(blocktype: BlockType, orientation: Orientation) -> Self {
         match (blocktype, orientation) {
             (BlockType::Line, Orientation::Up) => Block {
-                squares: (0..4).map(|y_index| y_index as f32 * COLL_SIZE).map(|y_pos| {
+                squares: (0..4).map(|y_index|{
                     Square{
-                        rect: Rect::new(0., y_pos, COLL_SIZE, COLL_SIZE),
+                        rect: Rect::new(0., y_index as f32 * SQUARE_SIZE, COLL_SIZE, COLL_SIZE),
+                        pos: (0, y_index),
+                        color: Color::new(0.1, 0.1, 1.0, 1.0),
+                    }
+                }).collect(),
+                blocktype,
+                orientation,
+            },
+            (BlockType::Line, Orientation::Left) => Block {
+                squares: (0..4).map(|x_index|{
+                    Square{
+                        rect: Rect::new(x_index as f32 * SQUARE_SIZE, 0., COLL_SIZE, COLL_SIZE),
+                        pos: (x_index, 0),
                         color: Color::new(0.1, 0.1, 1.0, 1.0),
                     }
                 }).collect(),
@@ -80,15 +99,19 @@ impl Block {
             (BlockType::Square, Orientation::Up) => Block{
                 squares: vec![
                     Square{rect: Rect::new(0., 0., COLL_SIZE, COLL_SIZE),
+                    pos: (0, 0),
                     color: Color::new(0.1, 1.0, 0.15, 1.0)},
 
                     Square{rect: Rect::new(0., SQUARE_SIZE, COLL_SIZE, COLL_SIZE),
+                    pos: (0, 1),
                     color: Color::new(0.1, 1.0, 0.15, 1.0)},
 
                     Square{rect: Rect::new(SQUARE_SIZE, 0., COLL_SIZE, COLL_SIZE),
+                    pos: (1, 0),
                     color: Color::new(0.1, 1.0, 0.15, 1.0)},
 
                     Square{rect: Rect::new(SQUARE_SIZE, SQUARE_SIZE, COLL_SIZE, COLL_SIZE),
+                    pos: (1, 1),
                     color: Color::new(0.1, 1.0, 0.15, 1.0)},
                 ],
                 blocktype,
@@ -107,11 +130,11 @@ impl Block {
         }
     }
 
-    pub fn translate(&self, x: i16, y: i16) -> Block{
+    pub fn translate(&self, x: isize, y: isize) -> Block{
         let mut cloned = self.squares.clone();
-        cloned.iter_mut().for_each(|square|{
-            square.rect.translate([x as f32 * SQUARE_SIZE, y as f32 * SQUARE_SIZE]);
-        });
+        let cloned: Vec<Square> = cloned.iter_mut().map(|square|{
+            square.translate(x, y)
+        }).collect();
         Block{
             squares: cloned,
             orientation: self.orientation,
@@ -120,34 +143,36 @@ impl Block {
     }
 
     pub fn overlaps(&self, board: &Vec<Square>) -> bool{
-        self.squares.iter().any(|square| board.iter().any(|other_square| square.rect.overlaps(&other_square.rect)))
+        self.squares.iter().any(|square| board.iter().any(|other_square| square.pos == other_square.pos))
     }
 
     pub fn is_valid(&self, board: &Vec<Square>) -> bool{
         !self.overlaps(board) && !self.squares.iter().any(|&square| {
-            square.rect.x <= -0.05 || square.rect.x + COLL_SIZE >= SCREEN_WIDTH 
-                || square.rect.y + COLL_SIZE >= SCREEN_HEIGHT
+            square.pos.0 < 0 || square.pos.0 >= X_SQUARES
+                || square.pos.1 > Y_SQUARES
         })
     }
 
-    pub fn min_square(&self, x: i32) -> Square{
-        self.squares.iter().filter(|square| square.board_pos().0 == x)
+    pub fn min_square(&self, x: isize) -> Square{
+        self.squares.iter().filter(|square| square.pos.0 == x)
             .fold(self.squares[0], |min_square, current_square|{
-                if current_square.rect.y > min_square.rect.y { *current_square } else { min_square }
+                if current_square.pos.1 > min_square.pos.1 { *current_square } else { min_square }
             })
     }
 
-    pub fn max_drop(&self, board: &Vec<Square>) -> i16 {
-        let (min_x, max_x) = self.squares.iter().fold((0i32, X_SQUARES as i32), |(min, max), current|{
-            let current_x = current.board_pos().0;
+    pub fn max_drop(&self, board: &Vec<Square>) -> isize {
+        let (min_x, max_x) = self.squares.iter().fold((X_SQUARES, 0), |(min, max), current|{
+            let current_x = current.pos.0;
             if current_x < min { (current_x, max) }
             else if current_x > max { (min, current_x) }
             else { (min, max) }
         });
 
-        (min_x..max_x).fold(Y_SQUARES as i16 - 1, |max_dist, x| {
+        let potential_max = (min_x..=max_x).fold(Y_SQUARES, |max_dist, x| {
             let square_max = self.min_square(x).max_y_translate(board);
-            if square_max - 1 < max_dist { square_max - 1} else { max_dist }
-        })
+            if square_max < max_dist { square_max } else { max_dist }
+        });
+
+        potential_max - 1
     }
 }
