@@ -6,8 +6,6 @@ use crate::SCREEN_HEIGHT;
 use crate::X_SQUARES;
 use crate::Y_SQUARES;
 
-use std::convert::TryInto;
-
 
 #[derive(Clone, Copy, Debug)]
 pub struct Square {
@@ -25,7 +23,7 @@ impl Square{
         }
     }
 
-    pub fn max_y_translate(&self, board: &Vec<Square>) -> isize {
+    pub fn max_y_translate(&self, board: &[Square]) -> isize {
         let max_square = board.iter().filter(|square| square.pos.0 == self.pos.0)
             .fold(Square::bottom(self.pos.0), |max_square, current_square|{
                 if current_square.pos.1 <= max_square.pos.1 { *current_square } else { max_square }
@@ -34,7 +32,7 @@ impl Square{
     }
 
     pub fn translate(&self, x: isize, y: isize) -> Square {
-        let mut new_rect = self.rect.clone();
+        let mut new_rect = self.rect;
         new_rect.translate([x as f32 * SQUARE_SIZE, y as f32 * SQUARE_SIZE]);
         Square{
             rect: new_rect,
@@ -141,11 +139,11 @@ impl Block {
         }
     }
 
-    pub fn overlaps(&self, board: &Vec<Square>) -> bool{
+    pub fn overlaps(&self, board: &[Square]) -> bool{
         self.squares.iter().any(|square| board.iter().any(|other_square| square.pos == other_square.pos))
     }
 
-    pub fn is_valid(&self, board: &Vec<Square>) -> bool{
+    pub fn is_valid(&self, board: &[Square]) -> bool{
         !self.overlaps(board) && !self.squares.iter().any(|&square| {
             square.pos.0 < 0 || square.pos.0 >= X_SQUARES
                 || square.pos.1 >= Y_SQUARES
@@ -159,7 +157,7 @@ impl Block {
             })
     }
 
-    pub fn max_drop(&self, board: &Vec<Square>) -> isize {
+    pub fn max_drop(&self, board: &[Square]) -> isize {
         let (min_x, max_x) = self.squares.iter().fold((X_SQUARES, 0), |(min, max), current|{
             let current_x = current.pos.0;
             if current_x < min { (current_x, max) }
@@ -172,6 +170,9 @@ impl Block {
             if square_max < max_dist { square_max } else { max_dist }
         });
 
-        potential_max - 1
+        for i in (0..potential_max).rev(){
+            if self.translate(0, i).is_valid(board) { return i };
+        }
+        return 0;
     }
 }

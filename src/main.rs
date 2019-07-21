@@ -1,7 +1,7 @@
 extern crate ggez;
 use ggez::{
     event, nalgebra as na, GameResult, Context, graphics,
-    graphics::{DrawMode, Color, Mesh, Rect, MeshBuilder, DrawParam},
+    graphics::{DrawMode, Color, MeshBuilder, DrawParam},
     event::{EventHandler},
     input::{keyboard}, input::keyboard::KeyCode,
 };
@@ -9,12 +9,9 @@ use ggez::{
 use std::convert::TryInto;
 
 extern crate rand;
-use rand::{Rng, thread_rng};
 
 mod block;
 use block::*;
-
-type Vector = na::Vector2<f32>;
 
 const SCREEN_HEIGHT: f32 = 600.;
 const SCREEN_WIDTH: f32 = 300.;
@@ -61,7 +58,7 @@ impl MainState {
 }
 
 impl EventHandler for MainState{
-    fn update(&mut self, ctx: &mut Context) -> GameResult{
+    fn update(&mut self, _ctx: &mut Context) -> GameResult{
         self.update_timer += 1;
         if self.update_timer >= TICK_INTERVAL{
             self.update_timer = 0;
@@ -86,7 +83,7 @@ impl EventHandler for MainState{
 
                 (min_y..=max_y).for_each(|y|{
                     let row = self.squares.iter().filter(|square| square.pos.1 == y);
-                    if row.clone().collect::<Vec<&Square>>().len() >= X_SQUARES.try_into().unwrap() {
+                    if row.clone().count() >= X_SQUARES.try_into().unwrap() {
                         self.squares = self.squares.iter().filter(|square|{
                             square.pos.1 != y
                         }).map(|square|{
