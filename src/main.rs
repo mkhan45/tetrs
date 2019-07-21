@@ -21,7 +21,7 @@ const Y_SQUARES: isize = 30;
 
 const SQUARE_SIZE: f32 = SCREEN_HEIGHT / Y_SQUARES as f32;
 
-const TICK_INTERVAL: usize = 10;
+const TICK_INTERVAL: usize = 120;
 
 
 #[derive(Clone)]
@@ -68,7 +68,7 @@ impl EventHandler for MainState{
             if translated.is_valid(&self.squares) { 
                 self.current_block = translated;
             } else {
-                let types = [BlockType::Line, BlockType::Square, BlockType::L];
+                let types = [BlockType::Line, BlockType::Square, BlockType::L, BlockType::ReverseL, BlockType::S, BlockType::Z];
                 let blocktype = types[(rand::random::<f32>() * types.len() as f32) as usize];
 
                 self.squares.append(&mut self.current_block.squares);
@@ -130,7 +130,7 @@ impl EventHandler for MainState{
         match keycode{
             KeyCode::Left => self.try_translate(-1, 0),
             KeyCode::Right => self.try_translate(1, 0),
-            KeyCode::Down => self.try_translate(0, 2),
+            KeyCode::Down => self.try_translate(0, 1),
             KeyCode::Up => if self.current_block.rotate().is_valid(&self.squares) { self.current_block = self.current_block.rotate() }, 
             KeyCode::Space => { 
                 self.try_translate(0, self.current_block.max_drop(&self.squares));
