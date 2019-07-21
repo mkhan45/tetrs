@@ -138,10 +138,11 @@ impl EventHandler for MainState{
             KeyCode::Left => self.try_translate(-1, 0),
             KeyCode::Right => self.try_translate(1, 0),
             KeyCode::Down => self.try_translate(0, 2),
+            KeyCode::Up => if self.current_block.rotate().is_valid(&self.squares) { self.current_block = self.current_block.rotate() }, 
             KeyCode::Space => { 
                 self.try_translate(0, self.current_block.max_drop(&self.squares).try_into().unwrap());
                 self.update_timer = TICK_INTERVAL;
-            }
+            },
             _ => {},
         }
     }

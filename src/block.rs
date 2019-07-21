@@ -127,7 +127,7 @@ impl Block {
             (BlockType::Line, Orientation::Up) => Block::new(BlockType::Line, Orientation::Left),
             (BlockType::Square, Orientation::Up) => Block::new(BlockType::Square, Orientation::Up),
             _ => {panic!{"invalid block, blocktype: {:?}, orientation: {:?}", self.blocktype, self.orientation}}
-        }
+        }.translate(self.squares[0].pos.0, self.squares[1].pos.1)
     }
 
     pub fn translate(&self, x: isize, y: isize) -> Block{
