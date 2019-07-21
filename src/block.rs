@@ -34,7 +34,6 @@ impl Square{
                 println!("{}", max_square.board_pos().1);
                 if current_square.rect.y <= max_square.rect.y { *current_square } else { max_square }
             });
-        // println!("{}", max_square.board_pos().1);
         (max_square.board_pos().1 - self.board_pos().1 - 1).try_into().unwrap()
     }
 }
@@ -146,9 +145,9 @@ impl Block {
             else { (min, max) }
         });
 
-        (min_x..max_x).fold(Y_SQUARES as i16, |max_dist, x| {
+        (min_x..max_x).fold(Y_SQUARES as i16 - 1, |max_dist, x| {
             let square_max = self.min_square(x).max_y_translate(board);
-            if square_max < max_dist { square_max } else { max_dist }
+            if square_max - 1 < max_dist { square_max - 1} else { max_dist }
         })
     }
 }

@@ -89,6 +89,12 @@ impl EventHandler for MainState{
             mesh.rectangle(DrawMode::fill(), square.rect, square.color);
         });
 
+        let preview = self.current_block.translate(0, self.current_block.max_drop(&self.squares));
+        preview.squares.iter().for_each(|square|{
+            mesh.rectangle(DrawMode::fill(), square.rect, Color::new(1.0, 1.0, 1.0, 0.5));
+        });
+        
+
         let mesh = &mesh.build(ctx).unwrap();
 
         graphics::draw(ctx, mesh, DrawParam::new()).unwrap();
@@ -103,9 +109,9 @@ impl EventHandler for MainState{
             KeyCode::Right => self.try_translate(1, 0),
             KeyCode::Down => self.try_translate(0, 2),
             KeyCode::Space => {
-                self.try_translate(0, self.current_block.max_drop(&self.squares) - 1);
-                // println!("{}", self.current_block.max_drop(&self.squares));
-            },
+                self.try_translate(0, self.current_block.max_drop(&self.squares));
+                self.try_translate(0, 1); //this is the smallest brain thing i've ever done
+            }
             _ => {},
         }
     }
