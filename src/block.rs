@@ -1,11 +1,9 @@
 use ggez::graphics::{Color, Rect};
 
-use crate::SQUARE_SIZE;
-use crate::SCREEN_WIDTH;
 use crate::SCREEN_HEIGHT;
+use crate::SQUARE_SIZE;
 use crate::X_SQUARES;
 use crate::Y_SQUARES;
-
 
 #[derive(Clone, Copy, Debug)]
 pub struct Square {
@@ -14,19 +12,30 @@ pub struct Square {
     pub color: Color,
 }
 
-impl Square{
-    fn bottom(x: isize) -> Self{
-        Square{
-            rect: Rect::new(x as f32 * SQUARE_SIZE, SCREEN_HEIGHT, SQUARE_SIZE, SQUARE_SIZE),
+impl Square {
+    fn bottom(x: isize) -> Self {
+        Square {
+            rect: Rect::new(
+                x as f32 * SQUARE_SIZE,
+                SCREEN_HEIGHT,
+                SQUARE_SIZE,
+                SQUARE_SIZE,
+            ),
             pos: (x, Y_SQUARES),
             color: Color::new(1.0, 1.0, 1.0, 1.0),
         }
     }
 
     pub fn max_y_translate(&self, board: &[Square]) -> isize {
-        let max_square = board.iter().filter(|square| square.pos.0 == self.pos.0 && square.pos.1 >= self.pos.1)
-            .fold(Square::bottom(self.pos.0), |max_square, current_square|{
-                if current_square.pos.1 <= max_square.pos.1 { *current_square } else { max_square }
+        let max_square = board
+            .iter()
+            .filter(|square| square.pos.0 == self.pos.0 && square.pos.1 >= self.pos.1)
+            .fold(Square::bottom(self.pos.0), |max_square, current_square| {
+                if current_square.pos.1 <= max_square.pos.1 {
+                    *current_square
+                } else {
+                    max_square
+                }
             });
         max_square.pos.1 - self.pos.1
     }
@@ -34,16 +43,24 @@ impl Square{
     pub fn translate(&self, x: isize, y: isize) -> Square {
         let mut new_rect = self.rect;
         new_rect.translate([x as f32 * SQUARE_SIZE, y as f32 * SQUARE_SIZE]);
-        Square{
+        Square {
             rect: new_rect,
-            pos: ((self.pos.0 as isize + x) as isize, (self.pos.1 as isize + y) as isize),
+            pos: (
+                (self.pos.0 as isize + x) as isize,
+                (self.pos.1 as isize + y) as isize,
+            ),
             color: self.color,
         }
     }
 
     fn new(x: isize, y: isize, color: Color) -> Self {
-        Square{
-            rect: Rect::new(x as f32 * SQUARE_SIZE, y as f32 * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE),
+        Square {
+            rect: Rect::new(
+                x as f32 * SQUARE_SIZE,
+                y as f32 * SQUARE_SIZE,
+                SQUARE_SIZE,
+                SQUARE_SIZE,
+            ),
             pos: (x, y),
             color,
         }
@@ -76,7 +93,7 @@ pub struct Block {
     pub orientation: Orientation,
 }
 
-pub fn color(blocktype: BlockType) -> Color{
+pub fn color(blocktype: BlockType) -> Color {
     match blocktype {
         BlockType::Line => Color::new(0.2, 0.2, 0.8, 1.0),
         BlockType::Square => Color::new(0.1, 1.0, 0.15, 1.0),
@@ -92,16 +109,16 @@ impl Block {
     pub fn new(blocktype: BlockType, orientation: Orientation) -> Self {
         match (blocktype, orientation) {
             (BlockType::Line, Orientation::Up) => Block {
-                squares: (0..4).map(|y_index|{
-                    Square::new(0, y_index, color(blocktype))
-                }).collect(),
+                squares: (0..4)
+                    .map(|y_index| Square::new(0, y_index, color(blocktype)))
+                    .collect(),
                 blocktype,
                 orientation,
             },
             (BlockType::Line, Orientation::Left) => Block {
-                squares: (0..4).map(|x_index|{
-                    Square::new(x_index, 0, color(blocktype))
-                }).collect(),
+                squares: (0..4)
+                    .map(|x_index| Square::new(x_index, 0, color(blocktype)))
+                    .collect(),
                 blocktype,
                 orientation,
             },
@@ -110,178 +127,201 @@ impl Block {
                     Square::new(0, 0, color(blocktype)),
                     Square::new(0, 1, color(blocktype)),
                     Square::new(1, 0, color(blocktype)),
-                    Square::new(1, 1, color(blocktype))],
+                    Square::new(1, 1, color(blocktype)),
+                ],
 
-                    blocktype,
-                    orientation,
+                blocktype,
+                orientation,
             },
             (BlockType::L, Orientation::Up) => Block {
                 squares: vec![
                     Square::new(0, 0, color(blocktype)),
                     Square::new(0, 1, color(blocktype)),
                     Square::new(0, 2, color(blocktype)),
-                    Square::new(1, 2, color(blocktype))],
+                    Square::new(1, 2, color(blocktype)),
+                ],
 
-                    blocktype,
-                    orientation,
+                blocktype,
+                orientation,
             },
             (BlockType::L, Orientation::Right) => Block {
                 squares: vec![
                     Square::new(0, 0, color(blocktype)),
                     Square::new(0, 1, color(blocktype)),
                     Square::new(1, 0, color(blocktype)),
-                    Square::new(2, 0, color(blocktype))],
+                    Square::new(2, 0, color(blocktype)),
+                ],
 
-                    blocktype,
-                    orientation,
+                blocktype,
+                orientation,
             },
             (BlockType::L, Orientation::Down) => Block {
                 squares: vec![
                     Square::new(0, 0, color(blocktype)),
                     Square::new(1, 0, color(blocktype)),
                     Square::new(1, 1, color(blocktype)),
-                    Square::new(1, 2, color(blocktype))],
+                    Square::new(1, 2, color(blocktype)),
+                ],
 
-                    blocktype,
-                    orientation,
+                blocktype,
+                orientation,
             },
             (BlockType::L, Orientation::Left) => Block {
                 squares: vec![
                     Square::new(0, 1, color(blocktype)),
                     Square::new(1, 1, color(blocktype)),
                     Square::new(2, 1, color(blocktype)),
-                    Square::new(2, 0, color(blocktype))],
+                    Square::new(2, 0, color(blocktype)),
+                ],
 
-                    blocktype,
-                    orientation,
-            }.translate(0, -1),
+                blocktype,
+                orientation,
+            }
+            .translate(0, -1),
             (BlockType::ReverseL, Orientation::Up) => Block {
                 squares: vec![
                     Square::new(1, 0, color(blocktype)),
                     Square::new(1, 1, color(blocktype)),
                     Square::new(1, 2, color(blocktype)),
-                    Square::new(0, 2, color(blocktype))],
+                    Square::new(0, 2, color(blocktype)),
+                ],
 
-                    blocktype,
-                    orientation,
-            }.translate(-1, 0),
+                blocktype,
+                orientation,
+            }
+            .translate(-1, 0),
             (BlockType::ReverseL, Orientation::Right) => Block {
                 squares: vec![
                     Square::new(0, 0, color(blocktype)),
                     Square::new(0, 1, color(blocktype)),
                     Square::new(1, 1, color(blocktype)),
-                    Square::new(2, 1, color(blocktype))],
+                    Square::new(2, 1, color(blocktype)),
+                ],
 
-                    blocktype,
-                    orientation,
+                blocktype,
+                orientation,
             },
             (BlockType::ReverseL, Orientation::Down) => Block {
                 squares: vec![
                     Square::new(0, 0, color(blocktype)),
                     Square::new(1, 0, color(blocktype)),
                     Square::new(0, 1, color(blocktype)),
-                    Square::new(0, 2, color(blocktype))],
+                    Square::new(0, 2, color(blocktype)),
+                ],
 
-                    blocktype,
-                    orientation,
+                blocktype,
+                orientation,
             },
             (BlockType::ReverseL, Orientation::Left) => Block {
                 squares: vec![
                     Square::new(0, 0, color(blocktype)),
                     Square::new(1, 0, color(blocktype)),
                     Square::new(2, 0, color(blocktype)),
-                    Square::new(2, 1, color(blocktype))],
+                    Square::new(2, 1, color(blocktype)),
+                ],
 
-                    blocktype,
-                    orientation,
+                blocktype,
+                orientation,
             },
             (BlockType::S, Orientation::Up) => Block {
                 squares: vec![
                     Square::new(0, 0, color(blocktype)),
                     Square::new(0, 1, color(blocktype)),
                     Square::new(1, 1, color(blocktype)),
-                    Square::new(1, 2, color(blocktype))],
+                    Square::new(1, 2, color(blocktype)),
+                ],
 
-                    blocktype,
-                    orientation,
+                blocktype,
+                orientation,
             },
             (BlockType::S, Orientation::Left) => Block {
                 squares: vec![
                     Square::new(0, 1, color(blocktype)),
                     Square::new(1, 1, color(blocktype)),
                     Square::new(1, 0, color(blocktype)),
-                    Square::new(2, 0, color(blocktype))],
+                    Square::new(2, 0, color(blocktype)),
+                ],
 
-                    blocktype,
-                    orientation,
-            }.translate(0, -1),
+                blocktype,
+                orientation,
+            }
+            .translate(0, -1),
             (BlockType::Z, Orientation::Up) => Block {
                 squares: vec![
                     Square::new(1, 0, color(blocktype)),
                     Square::new(1, 1, color(blocktype)),
                     Square::new(0, 1, color(blocktype)),
-                    Square::new(0, 2, color(blocktype))],
+                    Square::new(0, 2, color(blocktype)),
+                ],
 
-                    blocktype,
-                    orientation,
-            }.translate(-1, 0),
+                blocktype,
+                orientation,
+            }
+            .translate(-1, 0),
             (BlockType::Z, Orientation::Left) => Block {
                 squares: vec![
                     Square::new(0, 0, color(blocktype)),
                     Square::new(1, 0, color(blocktype)),
                     Square::new(1, 1, color(blocktype)),
-                    Square::new(2, 1, color(blocktype))],
+                    Square::new(2, 1, color(blocktype)),
+                ],
 
-                    blocktype,
-                    orientation,
+                blocktype,
+                orientation,
             },
             (BlockType::T, Orientation::Up) => Block {
                 squares: vec![
                     Square::new(1, 0, color(blocktype)),
                     Square::new(0, 1, color(blocktype)),
                     Square::new(1, 1, color(blocktype)),
-                    Square::new(2, 1, color(blocktype))],
+                    Square::new(2, 1, color(blocktype)),
+                ],
 
-                    blocktype,
-                    orientation,
+                blocktype,
+                orientation,
             },
             (BlockType::T, Orientation::Right) => Block {
                 squares: vec![
                     Square::new(0, 0, color(blocktype)),
                     Square::new(0, 1, color(blocktype)),
                     Square::new(0, 2, color(blocktype)),
-                    Square::new(1, 1, color(blocktype))],
+                    Square::new(1, 1, color(blocktype)),
+                ],
 
-                    blocktype,
-                    orientation,
+                blocktype,
+                orientation,
             },
             (BlockType::T, Orientation::Down) => Block {
                 squares: vec![
                     Square::new(0, 0, color(blocktype)),
                     Square::new(1, 0, color(blocktype)),
                     Square::new(2, 0, color(blocktype)),
-                    Square::new(1, 1, color(blocktype))],
+                    Square::new(1, 1, color(blocktype)),
+                ],
 
-                    blocktype,
-                    orientation,
+                blocktype,
+                orientation,
             },
             (BlockType::T, Orientation::Left) => Block {
                 squares: vec![
                     Square::new(1, 0, color(blocktype)),
                     Square::new(1, 1, color(blocktype)),
                     Square::new(1, 2, color(blocktype)),
-                    Square::new(0, 1, color(blocktype))],
+                    Square::new(0, 1, color(blocktype)),
+                ],
 
-                    blocktype,
-                    orientation,
+                blocktype,
+                orientation,
             },
 
-            _ => {panic!{"invalid block, blocktype: {:?}, orientation: {:?}", blocktype, orientation}}
+            _ => {
+                panic! {"invalid block, blocktype: {:?}, orientation: {:?}", blocktype, orientation}
+            }
         }
     }
 
     //could use Block::new() -> Option<Block> and then just increment stuff
-    pub fn rotate(&self) -> Block{
+    pub fn rotate(&self) -> Block {
         match (self.blocktype, self.orientation){
             (BlockType::Line, Orientation::Left) => Block::new(BlockType::Line, Orientation::Up),
             (BlockType::Line, Orientation::Up) => Block::new(BlockType::Line, Orientation::Left),
@@ -306,47 +346,69 @@ impl Block {
         }.translate(self.squares[0].pos.0, self.squares[1].pos.1)
     }
 
-    pub fn translate(&self, x: isize, y: isize) -> Block{
+    pub fn translate(&self, x: isize, y: isize) -> Block {
         let mut cloned = self.squares.clone();
-        let cloned: Vec<Square> = cloned.iter_mut().map(|square|{
-            square.translate(x, y)
-        }).collect();
-        Block{
+        let cloned: Vec<Square> = cloned
+            .iter_mut()
+            .map(|square| square.translate(x, y))
+            .collect();
+        Block {
             squares: cloned,
             orientation: self.orientation,
             blocktype: self.blocktype,
         }
     }
 
-    pub fn overlaps(&self, board: &[Square]) -> bool{
-        self.squares.iter().any(|square| board.iter().any(|other_square| square.pos == other_square.pos))
-    }
-
-    pub fn is_valid(&self, board: &[Square]) -> bool{
-        !self.overlaps(board) && !self.squares.iter().any(|&square| {
-            square.pos.0 < 0 || square.pos.0 >= X_SQUARES
-                || square.pos.1 >= Y_SQUARES
+    pub fn overlaps(&self, board: &[Square]) -> bool {
+        self.squares.iter().any(|square| {
+            board
+                .iter()
+                .any(|other_square| square.pos == other_square.pos)
         })
     }
 
-    pub fn min_square(&self, x: isize) -> Square{
-        self.squares.iter().filter(|square| square.pos.0 == x)
-            .fold(self.squares[0], |min_square, current_square|{
-                if current_square.pos.1 > min_square.pos.1 { *current_square } else { min_square }
+    pub fn is_valid(&self, board: &[Square]) -> bool {
+        !self.overlaps(board)
+            && !self.squares.iter().any(|&square| {
+                square.pos.0 < 0 || square.pos.0 >= X_SQUARES || square.pos.1 >= Y_SQUARES
             })
     }
 
+    pub fn min_square(&self, x: isize) -> Square {
+        self.squares.iter().filter(|square| square.pos.0 == x).fold(
+            self.squares[0],
+            |min_square, current_square| {
+                if current_square.pos.1 > min_square.pos.1 {
+                    *current_square
+                } else {
+                    min_square
+                }
+            },
+        )
+    }
+
     pub fn max_drop(&self, board: &[Square]) -> isize {
-        let (min_x, max_x) = self.squares.iter().fold((X_SQUARES, 0), |(min, max), current|{
-            let current_x = current.pos.0;
-            if current_x < min { (current_x, max) }
-            else if current_x > max { (min, current_x) }
-            else { (min, max) }
-        });
+        let (min_x, max_x) = self
+            .squares
+            .iter()
+            .fold((X_SQUARES, 0), |(min, max), current| {
+                let current_x = current.pos.0;
+                if current_x < min {
+                    (current_x, max)
+                } else if current_x > max {
+                    (min, current_x)
+                } else {
+                    (min, max)
+                }
+            });
 
         let potential_max = (min_x..=max_x).fold(Y_SQUARES, |max_dist, x| {
             let square_max = self.min_square(x).max_y_translate(board);
-            if square_max < max_dist { square_max } else { max_dist }
+            if square_max < max_dist {
+                square_max
+            } else {
+                max_dist
+            }
         });
 
         // let potential_max = self.squares.iter().fold(Y_SQUARES, |max_dist, square|{
@@ -354,8 +416,10 @@ impl Block {
         //     if square_max < max_dist { square_max } else { max_dist }
         // });
 
-        for i in (0..=potential_max).rev(){
-            if self.translate(0, i).is_valid(board) { return i };
+        for i in (0..=potential_max).rev() {
+            if self.translate(0, i).is_valid(board) {
+                return i;
+            };
         }
         return 0;
     }
