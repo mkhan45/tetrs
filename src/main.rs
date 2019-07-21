@@ -65,15 +65,11 @@ impl EventHandler for MainState{
         self.update_timer += 1;
         if self.update_timer >= TICK_INTERVAL{
             self.update_timer = 0;
-            let should_translate = !self.current_block.squares.iter().any(|&current_square|{
-                let mut new_square = current_square.rect.clone();
-                new_square.translate([0., SQUARE_SIZE]);
-                new_square.y + 0.5 >= SCREEN_HEIGHT || 
-                    self.squares.iter().any(|&board_square| new_square.overlaps(&board_square.rect))
-            });
 
-            if should_translate { 
-                self.current_block = self.current_block.translate(0, 1);
+            let translated = self.current_block.translate(0, 1);
+
+            if translated.is_valid(&self.squares) { 
+                self.current_block = translated;
             } else {
                 let types = [BlockType::Line, BlockType::Square];
                 let blocktype = types[(rand::random::<f32>() * types.len() as f32) as usize];
@@ -100,7 +96,7 @@ impl EventHandler for MainState{
                     }
                 });
 
-                self.current_block = Block::new(blocktype, Orientation::Up);
+                self.current_block = Block::new(blocktype, Orientation::Up).translate(X_SQUARES / 2, 0);
             }
         }
         Ok(())
@@ -119,7 +115,7 @@ impl EventHandler for MainState{
             mesh.rectangle(DrawMode::fill(), square.rect, square.color);
         });
 
-        let preview = self.current_block.translate(0, self.current_block.max_drop(&self.squares).try_into().unwrap());
+        let preview = self.current_block.translate(0, self.current_block.max_drop(&self.squares));
         preview.squares.iter().for_each(|square|{
             mesh.rectangle(DrawMode::fill(), square.rect, Color::new(1.0, 1.0, 1.0, 0.5));
         });
@@ -140,7 +136,7 @@ impl EventHandler for MainState{
             KeyCode::Down => self.try_translate(0, 2),
             KeyCode::Up => if self.current_block.rotate().is_valid(&self.squares) { self.current_block = self.current_block.rotate() }, 
             KeyCode::Space => { 
-                self.try_translate(0, self.current_block.max_drop(&self.squares).try_into().unwrap());
+                self.try_translate(0, self.current_block.max_drop(&self.squares));
                 self.update_timer = TICK_INTERVAL;
             },
             _ => {},

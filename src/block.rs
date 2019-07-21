@@ -5,7 +5,6 @@ use crate::SCREEN_WIDTH;
 use crate::SCREEN_HEIGHT;
 use crate::X_SQUARES;
 use crate::Y_SQUARES;
-const COLL_SIZE: f32 = SQUARE_SIZE - 0.05;
 
 use std::convert::TryInto;
 
@@ -77,7 +76,7 @@ impl Block {
             (BlockType::Line, Orientation::Up) => Block {
                 squares: (0..4).map(|y_index|{
                     Square{
-                        rect: Rect::new(0., y_index as f32 * SQUARE_SIZE, COLL_SIZE, COLL_SIZE),
+                        rect: Rect::new(0., y_index as f32 * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE),
                         pos: (0, y_index),
                         color: Color::new(0.1, 0.1, 1.0, 1.0),
                     }
@@ -88,7 +87,7 @@ impl Block {
             (BlockType::Line, Orientation::Left) => Block {
                 squares: (0..4).map(|x_index|{
                     Square{
-                        rect: Rect::new(x_index as f32 * SQUARE_SIZE, 0., COLL_SIZE, COLL_SIZE),
+                        rect: Rect::new(x_index as f32 * SQUARE_SIZE, 0., SQUARE_SIZE, SQUARE_SIZE),
                         pos: (x_index, 0),
                         color: Color::new(0.1, 0.1, 1.0, 1.0),
                     }
@@ -98,19 +97,19 @@ impl Block {
             },
             (BlockType::Square, Orientation::Up) => Block{
                 squares: vec![
-                    Square{rect: Rect::new(0., 0., COLL_SIZE, COLL_SIZE),
+                    Square{rect: Rect::new(0., 0., SQUARE_SIZE, SQUARE_SIZE),
                     pos: (0, 0),
                     color: Color::new(0.1, 1.0, 0.15, 1.0)},
 
-                    Square{rect: Rect::new(0., SQUARE_SIZE, COLL_SIZE, COLL_SIZE),
+                    Square{rect: Rect::new(0., SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE),
                     pos: (0, 1),
                     color: Color::new(0.1, 1.0, 0.15, 1.0)},
 
-                    Square{rect: Rect::new(SQUARE_SIZE, 0., COLL_SIZE, COLL_SIZE),
+                    Square{rect: Rect::new(SQUARE_SIZE, 0., SQUARE_SIZE, SQUARE_SIZE),
                     pos: (1, 0),
                     color: Color::new(0.1, 1.0, 0.15, 1.0)},
 
-                    Square{rect: Rect::new(SQUARE_SIZE, SQUARE_SIZE, COLL_SIZE, COLL_SIZE),
+                    Square{rect: Rect::new(SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE),
                     pos: (1, 1),
                     color: Color::new(0.1, 1.0, 0.15, 1.0)},
                 ],
@@ -149,7 +148,7 @@ impl Block {
     pub fn is_valid(&self, board: &Vec<Square>) -> bool{
         !self.overlaps(board) && !self.squares.iter().any(|&square| {
             square.pos.0 < 0 || square.pos.0 >= X_SQUARES
-                || square.pos.1 > Y_SQUARES
+                || square.pos.1 >= Y_SQUARES
         })
     }
 
