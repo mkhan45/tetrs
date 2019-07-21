@@ -68,6 +68,18 @@ pub struct Block {
     pub orientation: Orientation,
 }
 
+pub fn color(blocktype: BlockType) -> Color{
+    match blocktype {
+        BlockType::Line => Color::new(0.25, 0.25, 1.0, 1.0),
+        BlockType::Square => Color::new(0.1, 1.0, 0.15, 1.0),
+        BlockType::L => Color::new(0.1, 0.1, 1.0, 1.0),
+        BlockType::ReverseL => Color::new(1.0, 0.25, 0.25, 1.0),
+        BlockType::S => Color::new(0.1, 1.0, 0.1, 1.0),
+        BlockType::Z => Color::new(1.0, 0.1, 0.1, 1.0),
+        BlockType::T => Color::new(0.2, 0.05, 0.9, 1.0),
+    }
+}
+
 impl Block {
     pub fn new(blocktype: BlockType, orientation: Orientation) -> Self {
         match (blocktype, orientation) {
@@ -76,7 +88,7 @@ impl Block {
                     Square{
                         rect: Rect::new(0., y_index as f32 * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE),
                         pos: (0, y_index),
-                        color: Color::new(0.1, 0.1, 1.0, 1.0),
+                        color: color(blocktype),
                     }
                 }).collect(),
                 blocktype,
@@ -87,42 +99,128 @@ impl Block {
                     Square{
                         rect: Rect::new(x_index as f32 * SQUARE_SIZE, 0., SQUARE_SIZE, SQUARE_SIZE),
                         pos: (x_index, 0),
-                        color: Color::new(0.1, 0.1, 1.0, 1.0),
+                        color: color(blocktype),
                     }
                 }).collect(),
                 blocktype,
                 orientation,
             },
-            (BlockType::Square, Orientation::Up) => Block{
+            (BlockType::Square, Orientation::Up) => Block {
                 squares: vec![
                     Square{rect: Rect::new(0., 0., SQUARE_SIZE, SQUARE_SIZE),
                     pos: (0, 0),
-                    color: Color::new(0.1, 1.0, 0.15, 1.0)},
+                    color: color(blocktype)},
 
                     Square{rect: Rect::new(0., SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE),
                     pos: (0, 1),
-                    color: Color::new(0.1, 1.0, 0.15, 1.0)},
+                    color: color(blocktype)},
 
                     Square{rect: Rect::new(SQUARE_SIZE, 0., SQUARE_SIZE, SQUARE_SIZE),
                     pos: (1, 0),
-                    color: Color::new(0.1, 1.0, 0.15, 1.0)},
+                    color: color(blocktype)},
 
                     Square{rect: Rect::new(SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE),
                     pos: (1, 1),
-                    color: Color::new(0.1, 1.0, 0.15, 1.0)},
-                ],
-                blocktype,
-                orientation,
+                    color: color(blocktype)}],
+
+                    blocktype,
+                    orientation,
             },
+            (BlockType::L, Orientation::Up) => Block {
+                squares: vec![
+                    Square{rect: Rect::new(0., 0., SQUARE_SIZE, SQUARE_SIZE),
+                    pos: (0, 0),
+                    color: color(blocktype)},
+
+                    Square{rect: Rect::new(0., 1. * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE),
+                    pos: (0, 1),
+                    color: color(blocktype)},
+
+                    Square{rect: Rect::new(0., 2. * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE),
+                    pos: (0, 2),
+                    color: color(blocktype)},
+
+                    Square{rect: Rect::new(1. * SQUARE_SIZE, 2. * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE),
+                    pos: (1, 2),
+                    color: color(blocktype)}],
+                    blocktype,
+                    orientation,
+            },
+            (BlockType::L, Orientation::Right) => Block {
+                squares: vec![
+                    Square{rect: Rect::new(0., 0., SQUARE_SIZE, SQUARE_SIZE),
+                    pos: (0, 0),
+                    color: color(blocktype)},
+
+                    Square{rect: Rect::new(0., 1. * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE),
+                    pos: (0, 1),
+                    color: color(blocktype)},
+
+                    Square{rect: Rect::new(1. * SQUARE_SIZE, 0. * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE),
+                    pos: (1, 0),
+                    color: color(blocktype)},
+
+                    Square{rect: Rect::new(2. * SQUARE_SIZE, 0. * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE),
+                    pos: (2, 0),
+                    color: color(blocktype)}],
+                    blocktype,
+                    orientation,
+            },
+            (BlockType::L, Orientation::Down) => Block {
+                squares: vec![
+                    Square{rect: Rect::new(0., 0., SQUARE_SIZE, SQUARE_SIZE),
+                    pos: (0, 0),
+                    color: color(blocktype)},
+
+                    Square{rect: Rect::new(1. * SQUARE_SIZE, 0. * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE),
+                    pos: (1, 0),
+                    color: color(blocktype)},
+
+                    Square{rect: Rect::new(1. * SQUARE_SIZE, 1. * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE),
+                    pos: (1, 1),
+                    color: color(blocktype)},
+
+                    Square{rect: Rect::new(1. * SQUARE_SIZE, 2. * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE),
+                    pos: (1, 2),
+                    color: color(blocktype)}],
+                    blocktype,
+                    orientation,
+            },
+            (BlockType::L, Orientation::Left) => Block {
+                squares: vec![
+                    Square{rect: Rect::new(0., 1. * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE),
+                    pos: (0, 1),
+                    color: color(blocktype)},
+
+                    Square{rect: Rect::new(1. * SQUARE_SIZE, 1. * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE),
+                    pos: (1, 1),
+                    color: color(blocktype)},
+
+                    Square{rect: Rect::new(2. * SQUARE_SIZE, 1. * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE),
+                    pos: (2, 1),
+                    color: color(blocktype)},
+
+                    Square{rect: Rect::new(2. * SQUARE_SIZE, 0. * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE),
+                    pos: (2, 0),
+                    color: color(blocktype)}],
+                    blocktype,
+                    orientation,
+            },
+
             _ => {panic!{"invalid block, blocktype: {:?}, orientation: {:?}", blocktype, orientation}}
         }
     }
 
-    pub fn rotate(&self) -> Block{ //there's probably a better way to do this
+    //could use Block::new() -> Option<Block> and then just increment stuff
+    pub fn rotate(&self) -> Block{ //there's probably a better way to do this 
         match (self.blocktype, self.orientation){
             (BlockType::Line, Orientation::Left) => Block::new(BlockType::Line, Orientation::Up),
             (BlockType::Line, Orientation::Up) => Block::new(BlockType::Line, Orientation::Left),
             (BlockType::Square, Orientation::Up) => Block::new(BlockType::Square, Orientation::Up),
+            (BlockType::L, Orientation::Up) => Block::new(BlockType::L, Orientation::Right),
+            (BlockType::L, Orientation::Right) => Block::new(BlockType::L, Orientation::Down),
+            (BlockType::L, Orientation::Down) => Block::new(BlockType::L, Orientation::Left),
+            (BlockType::L, Orientation::Left) => Block::new(BlockType::L, Orientation::Up),
             _ => {panic!{"invalid block, blocktype: {:?}, orientation: {:?}", self.blocktype, self.orientation}}
         }.translate(self.squares[0].pos.0, self.squares[1].pos.1)
     }

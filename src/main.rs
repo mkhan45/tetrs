@@ -68,7 +68,7 @@ impl EventHandler for MainState{
             if translated.is_valid(&self.squares) { 
                 self.current_block = translated;
             } else {
-                let types = [BlockType::Line, BlockType::Square];
+                let types = [BlockType::Line, BlockType::Square, BlockType::L];
                 let blocktype = types[(rand::random::<f32>() * types.len() as f32) as usize];
 
                 self.squares.append(&mut self.current_block.squares);
