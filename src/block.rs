@@ -235,13 +235,53 @@ impl Block {
                     blocktype,
                     orientation,
             },
+            (BlockType::T, Orientation::Up) => Block {
+                squares: vec![
+                    Square::new(1, 0, color(blocktype)),
+                    Square::new(0, 1, color(blocktype)),
+                    Square::new(1, 1, color(blocktype)),
+                    Square::new(2, 1, color(blocktype))],
+
+                    blocktype,
+                    orientation,
+            },
+            (BlockType::T, Orientation::Right) => Block {
+                squares: vec![
+                    Square::new(0, 0, color(blocktype)),
+                    Square::new(0, 1, color(blocktype)),
+                    Square::new(0, 2, color(blocktype)),
+                    Square::new(1, 1, color(blocktype))],
+
+                    blocktype,
+                    orientation,
+            },
+            (BlockType::T, Orientation::Down) => Block {
+                squares: vec![
+                    Square::new(0, 0, color(blocktype)),
+                    Square::new(1, 0, color(blocktype)),
+                    Square::new(2, 0, color(blocktype)),
+                    Square::new(1, 1, color(blocktype))],
+
+                    blocktype,
+                    orientation,
+            },
+            (BlockType::T, Orientation::Left) => Block {
+                squares: vec![
+                    Square::new(1, 0, color(blocktype)),
+                    Square::new(1, 1, color(blocktype)),
+                    Square::new(1, 2, color(blocktype)),
+                    Square::new(0, 1, color(blocktype))],
+
+                    blocktype,
+                    orientation,
+            },
 
             _ => {panic!{"invalid block, blocktype: {:?}, orientation: {:?}", blocktype, orientation}}
         }
     }
 
     //could use Block::new() -> Option<Block> and then just increment stuff
-    pub fn rotate(&self) -> Block{ //there's probably a better way to do this 
+    pub fn rotate(&self) -> Block{
         match (self.blocktype, self.orientation){
             (BlockType::Line, Orientation::Left) => Block::new(BlockType::Line, Orientation::Up),
             (BlockType::Line, Orientation::Up) => Block::new(BlockType::Line, Orientation::Left),
@@ -258,6 +298,10 @@ impl Block {
             (BlockType::S, Orientation::Left) => Block::new(BlockType::S, Orientation::Up),
             (BlockType::Z, Orientation::Up) => Block::new(BlockType::Z, Orientation::Left),
             (BlockType::Z, Orientation::Left) => Block::new(BlockType::Z, Orientation::Up),
+            (BlockType::T, Orientation::Up) => Block::new(BlockType::T, Orientation::Right),
+            (BlockType::T, Orientation::Right) => Block::new(BlockType::T, Orientation::Down),
+            (BlockType::T, Orientation::Down) => Block::new(BlockType::T, Orientation::Left),
+            (BlockType::T, Orientation::Left) => Block::new(BlockType::T, Orientation::Up),
             _ => {panic!{"invalid block, blocktype: {:?}, orientation: {:?}", self.blocktype, self.orientation}}
         }.translate(self.squares[0].pos.0, self.squares[1].pos.1)
     }
