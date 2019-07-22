@@ -11,6 +11,9 @@ use ggez::{
 
 use std::convert::TryInto;
 
+use rand::seq::SliceRandom;
+use rand::thread_rng;
+
 extern crate rand;
 
 mod block;
@@ -33,6 +36,16 @@ struct MainState {
     pub current_block: Block,
     pub positions: Vec<Vec<(f32, f32)>>,
     pub update_timer: usize,
+    pub held_block: Option<BlockType>,
+    pub queue: [usize; 14],
+    pub block_index: usize,
+}
+
+pub fn generate_queue() -> [usize; 14] {
+    let mut rng = thread_rng();
+    let mut slice = (0..=6).chain(0..=6).collect::<Vec<usize>>();
+    slice.shuffle(&mut rng);
+    slice.as_slice().try_into().unwrap()
 }
 
 impl MainState {
@@ -48,14 +61,17 @@ impl MainState {
                     .map(|y_index| (x_index as f32 * SQUARE_SIZE, y_index as f32 * SQUARE_SIZE))
                     .collect::<Vec<(f32, f32)>>()
             })
-            .collect();
+        .collect();
 
-        MainState {
-            squares,
-            current_block,
-            positions,
-            update_timer: 0,
-        }
+    MainState {
+        squares,
+        current_block,
+        positions,
+        update_timer: 0,
+        held_block: None,
+        queue: generate_queue(),
+        block_index: 0,
+    }
     }
 
     fn reset(&mut self) {}
@@ -65,6 +81,11 @@ impl MainState {
         if translated.is_valid(&self.squares) {
             self.current_block = translated;
         }
+    }
+
+    fn update_queue(&mut self){
+        let mut rng = thread_rng();
+        self.queue.shuffle(&mut rng);
     }
 }
 
@@ -89,7 +110,13 @@ impl EventHandler for MainState {
                     BlockType::T,
                 ];
 
-                let blocktype = types[(rand::random::<f32>() * types.len() as f32) as usize];
+                if self.block_index == 14{
+                    self.update_queue();
+                    self.block_index = 0;
+                }
+
+                let blocktype = types[self.queue[self.block_index]];
+                self.block_index += 1;
 
                 self.squares.append(&mut self.current_block.squares);
 
@@ -121,7 +148,7 @@ impl EventHandler for MainState {
                                     *square
                                 }
                             })
-                            .collect()
+                        .collect()
                     }
                 });
 
@@ -158,13 +185,23 @@ impl EventHandler for MainState {
 
         mesh.line(
             &[
-                [SCREEN_WIDTH as f32, 0.],
-                [SCREEN_WIDTH as f32, SCREEN_HEIGHT as f32],
+            [SCREEN_WIDTH as f32, 0.],
+            [SCREEN_WIDTH as f32, SCREEN_HEIGHT as f32],
             ],
             2.,
             Color::new(1.0, 1.0, 1.0, 1.0),
         )
-        .unwrap();
+            .unwrap();
+
+        mesh.line(
+            &[
+            [SCREEN_WIDTH as f32, 150.],
+            [SCREEN_WIDTHER as f32, 150.],
+            ],
+            2.,
+            Color::new(1.0, 1.0, 1.0, 1.0),
+        )
+            .unwrap();
 
         let mesh = &mesh.build(ctx).unwrap();
 
