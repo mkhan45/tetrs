@@ -331,16 +331,16 @@ impl Block {
             (BlockType::L, Orientation::Left) => Block::new(BlockType::L, Orientation::Up),
             (BlockType::ReverseL, Orientation::Up) => Block::new(BlockType::ReverseL, Orientation::Right),
             (BlockType::ReverseL, Orientation::Right) => Block::new(BlockType::ReverseL, Orientation::Down),
-            (BlockType::ReverseL, Orientation::Down) => Block::new(BlockType::ReverseL, Orientation::Left),
+            (BlockType::ReverseL, Orientation::Down) => Block::new(BlockType::ReverseL, Orientation::Left).translate(-1, 0),
             (BlockType::ReverseL, Orientation::Left) => Block::new(BlockType::ReverseL, Orientation::Up),
             (BlockType::S, Orientation::Up) => Block::new(BlockType::S, Orientation::Left),
             (BlockType::S, Orientation::Left) => Block::new(BlockType::S, Orientation::Up),
             (BlockType::Z, Orientation::Up) => Block::new(BlockType::Z, Orientation::Left),
-            (BlockType::Z, Orientation::Left) => Block::new(BlockType::Z, Orientation::Up),
+            (BlockType::Z, Orientation::Left) => Block::new(BlockType::Z, Orientation::Up).translate(-1, 0),
             (BlockType::T, Orientation::Up) => Block::new(BlockType::T, Orientation::Right),
-            (BlockType::T, Orientation::Right) => Block::new(BlockType::T, Orientation::Down),
+            (BlockType::T, Orientation::Right) => Block::new(BlockType::T, Orientation::Down).translate(-1, 0),
             (BlockType::T, Orientation::Down) => Block::new(BlockType::T, Orientation::Left),
-            (BlockType::T, Orientation::Left) => Block::new(BlockType::T, Orientation::Up),
+            (BlockType::T, Orientation::Left) => Block::new(BlockType::T, Orientation::Up).translate(-1, 0),
             _ => {panic!{"invalid block, blocktype: {:?}, orientation: {:?}", self.blocktype, self.orientation}}
         }.translate(self.squares[0].pos.0, self.squares[1].pos.1)
     }

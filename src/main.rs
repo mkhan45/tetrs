@@ -29,7 +29,7 @@ const Y_SQUARES: isize = 30;
 
 const SQUARE_SIZE: f32 = SCREEN_HEIGHT / Y_SQUARES as f32;
 
-const BORDER_SIZE: f32 = 0.7;
+const BORDER_SIZE: f32 = 0.5;
 
 const TICK_INTERVAL: usize = 30;
 
