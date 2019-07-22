@@ -52,6 +52,7 @@ struct MainState {
     pub held_block: Option<BlockType>,
     pub queue: [usize; 14],
     pub block_index: usize,
+    pub used_hold: bool,
 }
 
 pub fn generate_queue() -> [usize; 14] {
@@ -84,6 +85,7 @@ impl MainState {
         held_block: None,
         queue: generate_queue(),
         block_index: 0,
+        used_hold: false,
     }
     }
 
@@ -122,6 +124,7 @@ impl EventHandler for MainState {
                 self.block_index += 1;
 
                 self.squares.append(&mut self.current_block.squares);
+                self.used_hold = false;
 
                 let (min_y, max_y) = self.current_block.squares.iter().fold(
                     (0, Y_SQUARES),
@@ -206,6 +209,22 @@ impl EventHandler for MainState {
             });
         }
 
+        if let Some(held_type) = self.held_block{
+            let held = Block::new(held_type, Orientation::Up).translate(
+                X_SQUARES + 4,
+                1,
+            );
+
+            held.squares.iter().for_each(|square|{
+                mesh.rectangle(
+                    DrawMode::fill(),
+                    square.rect,
+                    color(held_type),
+                );
+            });
+        }
+
+
         mesh.line(
             &[
             [SCREEN_WIDTH as f32, 0.],
@@ -246,11 +265,32 @@ impl EventHandler for MainState {
                 if self.current_block.rotate().is_valid(&self.squares) {
                     self.current_block = self.current_block.rotate()
                 }
-            }
+            },
             KeyCode::Space => {
                 self.try_translate(0, self.current_block.max_drop(&self.squares));
                 self.update_timer = TICK_INTERVAL;
-            }
+            },
+            KeyCode::C => {
+                if !self.used_hold{
+                    self.used_hold = true;
+                    let saved_current = self.current_block.blocktype;
+                    self.current_block = match self.held_block{
+                        Some(blocktype) => Block::new(blocktype, Orientation::Up).translate(X_SQUARES/2, 0),
+                        None => { //duplicated code oops
+                            if self.block_index == 14 {
+                                self.update_queue();
+                                self.block_index = 0;
+                            }
+
+                            let new_blocktype = TYPES[self.queue[self.block_index]];
+                            self.block_index += 1;
+
+                            Block::new(new_blocktype, Orientation::Up).translate(X_SQUARES/2, 0)
+                        }
+                    };
+                    self.held_block = Some(saved_current);
+                }
+            },
             _ => {}
         }
     }
