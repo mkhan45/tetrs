@@ -114,14 +114,16 @@ impl Block {
                     .collect(),
                 blocktype,
                 orientation,
-            },
+            }
+            .translate(2, 0),
             (BlockType::Line, Orientation::Left) => Block {
                 squares: (0..4)
                     .map(|x_index| Square::new(x_index, 0, color(blocktype)))
                     .collect(),
                 blocktype,
                 orientation,
-            },
+            }
+            .translate(-2, 0),
             (BlockType::Square, Orientation::Up) => Block {
                 squares: vec![
                     Square::new(0, 0, color(blocktype)),
@@ -414,7 +416,6 @@ impl Block {
         //     }
         // });
 
-
         // for i in (0..potential_max).rev() {
         //     if self.translate(0, i).is_valid(board) {
         //         return i;
@@ -422,7 +423,7 @@ impl Block {
         // }
         // return 0;
 
-        self.squares.iter().fold(Y_SQUARES, |max_dist, square|{
+        self.squares.iter().fold(Y_SQUARES, |max_dist, square| {
             let square_max = square.max_y_translate(board);
             if square_max < max_dist {
                 square_max

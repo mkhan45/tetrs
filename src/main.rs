@@ -18,6 +18,7 @@ use block::*;
 
 const SCREEN_HEIGHT: f32 = 600.;
 const SCREEN_WIDTH: f32 = 300.;
+const SCREEN_WIDTHER: f32 = 500.;
 
 const X_SQUARES: isize = 15;
 const Y_SQUARES: isize = 30;
@@ -47,14 +48,14 @@ impl MainState {
                     .map(|y_index| (x_index as f32 * SQUARE_SIZE, y_index as f32 * SQUARE_SIZE))
                     .collect::<Vec<(f32, f32)>>()
             })
-        .collect();
+            .collect();
 
-    MainState {
-        squares,
-        current_block,
-        positions,
-        update_timer: 0,
-    }
+        MainState {
+            squares,
+            current_block,
+            positions,
+            update_timer: 0,
+        }
     }
 
     fn reset(&mut self) {}
@@ -120,7 +121,7 @@ impl EventHandler for MainState {
                                     *square
                                 }
                             })
-                        .collect()
+                            .collect()
                     }
                 });
 
@@ -154,6 +155,16 @@ impl EventHandler for MainState {
                 Color::new(1.0, 1.0, 1.0, 0.5),
             );
         });
+
+        mesh.line(
+            &[
+                [SCREEN_WIDTH as f32, 0.],
+                [SCREEN_WIDTH as f32, SCREEN_HEIGHT as f32],
+            ],
+            2.,
+            Color::new(1.0, 1.0, 1.0, 1.0),
+        )
+        .unwrap();
 
         let mesh = &mesh.build(ctx).unwrap();
 
@@ -189,9 +200,9 @@ impl EventHandler for MainState {
 }
 
 fn main() -> GameResult {
-    let (ctx, event_loop) = &mut ggez::ContextBuilder::new("Pong", "Fish")
-        .window_setup(ggez::conf::WindowSetup::default().title("Pong"))
-        .window_mode(ggez::conf::WindowMode::default().dimensions(SCREEN_WIDTH, SCREEN_HEIGHT))
+    let (ctx, event_loop) = &mut ggez::ContextBuilder::new("Tetrs", "Fish")
+        .window_setup(ggez::conf::WindowSetup::default().title("Tetrs"))
+        .window_mode(ggez::conf::WindowMode::default().dimensions(SCREEN_WIDTHER, SCREEN_HEIGHT))
         .build()
         .expect("error building context");
 
