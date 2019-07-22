@@ -2,8 +2,11 @@ use ggez::graphics::{Color, Rect};
 
 use crate::SCREEN_HEIGHT;
 use crate::SQUARE_SIZE;
+
 use crate::X_SQUARES;
 use crate::Y_SQUARES;
+
+use crate::BORDER_SIZE;
 
 #[derive(Clone, Copy, Debug)]
 pub struct Square {
@@ -18,8 +21,8 @@ impl Square {
             rect: Rect::new(
                 x as f32 * SQUARE_SIZE,
                 SCREEN_HEIGHT,
-                SQUARE_SIZE,
-                SQUARE_SIZE,
+                5.,
+                5.,
             ),
             pos: (x, Y_SQUARES),
             color: Color::new(1.0, 1.0, 1.0, 1.0),
@@ -56,10 +59,10 @@ impl Square {
     fn new(x: isize, y: isize, color: Color) -> Self {
         Square {
             rect: Rect::new(
-                x as f32 * SQUARE_SIZE,
-                y as f32 * SQUARE_SIZE,
-                SQUARE_SIZE,
-                SQUARE_SIZE,
+                x as f32 * SQUARE_SIZE + BORDER_SIZE,
+                y as f32 * SQUARE_SIZE + BORDER_SIZE,
+                SQUARE_SIZE - (BORDER_SIZE * 2.),
+                SQUARE_SIZE - (BORDER_SIZE * 2.),
             ),
             pos: (x, y),
             color,

@@ -1,3 +1,4 @@
+//#![feature(stmt_expr_attributes)] //for rustfmt
 extern crate ggez;
 use ggez::{
     event,
@@ -28,7 +29,19 @@ const Y_SQUARES: isize = 30;
 
 const SQUARE_SIZE: f32 = SCREEN_HEIGHT / Y_SQUARES as f32;
 
+const BORDER_SIZE: f32 = 0.5;
+
 const TICK_INTERVAL: usize = 30;
+
+static TYPES: [BlockType; 7] = [
+    BlockType::Line,
+    BlockType::Square,
+    BlockType::L,
+    BlockType::ReverseL,
+    BlockType::S,
+    BlockType::Z,
+    BlockType::T,
+];
 
 #[derive(Clone)]
 struct MainState {
@@ -83,7 +96,7 @@ impl MainState {
         }
     }
 
-    fn update_queue(&mut self){
+    fn update_queue(&mut self) {
         let mut rng = thread_rng();
         self.queue.shuffle(&mut rng);
     }
@@ -100,22 +113,12 @@ impl EventHandler for MainState {
             if translated.is_valid(&self.squares) {
                 self.current_block = translated;
             } else {
-                let types = [
-                    BlockType::Line,
-                    BlockType::Square,
-                    BlockType::L,
-                    BlockType::ReverseL,
-                    BlockType::S,
-                    BlockType::Z,
-                    BlockType::T,
-                ];
-
-                if self.block_index == 14{
+                if self.block_index == 14 {
                     self.update_queue();
                     self.block_index = 0;
                 }
 
-                let blocktype = types[self.queue[self.block_index]];
+                let blocktype = TYPES[self.queue[self.block_index]];
                 self.block_index += 1;
 
                 self.squares.append(&mut self.current_block.squares);
@@ -172,16 +175,36 @@ impl EventHandler for MainState {
             mesh.rectangle(DrawMode::fill(), square.rect, square.color);
         });
 
-        let preview = self
-            .current_block
-            .translate(0, self.current_block.max_drop(&self.squares));
-        preview.squares.iter().for_each(|square| {
-            mesh.rectangle(
-                DrawMode::fill(),
-                square.rect,
-                Color::new(1.0, 1.0, 1.0, 0.5),
+        {
+            let preview = self
+                .current_block
+                .translate(0, self.current_block.max_drop(&self.squares));
+
+            preview.squares.iter().for_each(|square| {
+                mesh.rectangle(
+                    DrawMode::fill(),
+                    square.rect,
+                    Color::new(1.0, 1.0, 1.0, 0.5),
+                );
+            });
+        }
+
+        //#[rustfmt::skip]
+        for i in self.block_index..(if self.block_index + 5 < 14 { self.block_index + 5 } else { 13 }) {
+            let future_type = TYPES[self.queue[i]];
+            let future_block = Block::new(future_type, Orientation::Up).translate(
+                X_SQUARES + 4,
+                (8 + 5 * (i - self.block_index)).try_into().unwrap(),
             );
-        });
+
+            future_block.squares.iter().for_each(|square| {
+                mesh.rectangle(
+                    DrawMode::fill(),
+                    square.rect,
+                    color(future_block.blocktype),
+                );
+            });
+        }
 
         mesh.line(
             &[
@@ -194,10 +217,7 @@ impl EventHandler for MainState {
             .unwrap();
 
         mesh.line(
-            &[
-            [SCREEN_WIDTH as f32, 150.],
-            [SCREEN_WIDTHER as f32, 150.],
-            ],
+            &[[SCREEN_WIDTH as f32, 150.], [SCREEN_WIDTHER as f32, 150.]],
             2.,
             Color::new(1.0, 1.0, 1.0, 1.0),
         )
