@@ -20,16 +20,16 @@ extern crate rand;
 mod block;
 use block::*;
 
-const SCREEN_HEIGHT: f32 = 600.;
-const SCREEN_WIDTH: f32 = 300.;
-const SCREEN_WIDTHER: f32 = 500.;
+const SCREEN_HEIGHT: f32 = 700.;
+const SCREEN_WIDTH: f32 = 350.;
+const SCREEN_WIDTHER: f32 = 600.;
 
 const X_SQUARES: isize = 15;
 const Y_SQUARES: isize = 30;
 
 const SQUARE_SIZE: f32 = SCREEN_HEIGHT / Y_SQUARES as f32;
 
-const BORDER_SIZE: f32 = 0.5;
+const BORDER_SIZE: f32 = 0.7;
 
 const TICK_INTERVAL: usize = 30;
 

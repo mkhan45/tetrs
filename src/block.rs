@@ -117,16 +117,14 @@ impl Block {
                     .collect(),
                 blocktype,
                 orientation,
-            }
-            .translate(2, 0),
+            },
             (BlockType::Line, Orientation::Left) => Block {
                 squares: (0..4)
                     .map(|x_index| Square::new(x_index, 0, color(blocktype)))
                     .collect(),
                 blocktype,
                 orientation,
-            }
-            .translate(-2, 0),
+            },
             (BlockType::Square, Orientation::Up) => Block {
                 squares: vec![
                     Square::new(0, 0, color(blocktype)),
@@ -181,8 +179,7 @@ impl Block {
 
                 blocktype,
                 orientation,
-            }
-            .translate(0, -1),
+            },
             (BlockType::ReverseL, Orientation::Up) => Block {
                 squares: vec![
                     Square::new(1, 0, color(blocktype)),
@@ -193,8 +190,7 @@ impl Block {
 
                 blocktype,
                 orientation,
-            }
-            .translate(-1, 0),
+            },
             (BlockType::ReverseL, Orientation::Right) => Block {
                 squares: vec![
                     Square::new(0, 0, color(blocktype)),
@@ -249,8 +245,7 @@ impl Block {
 
                 blocktype,
                 orientation,
-            }
-            .translate(0, -1),
+            },
             (BlockType::Z, Orientation::Up) => Block {
                 squares: vec![
                     Square::new(1, 0, color(blocktype)),
@@ -261,8 +256,7 @@ impl Block {
 
                 blocktype,
                 orientation,
-            }
-            .translate(-1, 0),
+            },
             (BlockType::Z, Orientation::Left) => Block {
                 squares: vec![
                     Square::new(0, 0, color(blocktype)),
@@ -328,8 +322,8 @@ impl Block {
     //could use Block::new() -> Option<Block> and then just increment stuff
     pub fn rotate(&self) -> Block {
         match (self.blocktype, self.orientation){
-            (BlockType::Line, Orientation::Left) => Block::new(BlockType::Line, Orientation::Up),
-            (BlockType::Line, Orientation::Up) => Block::new(BlockType::Line, Orientation::Left),
+            (BlockType::Line, Orientation::Left) => Block::new(BlockType::Line, Orientation::Up).translate(2, 0),
+            (BlockType::Line, Orientation::Up) => Block::new(BlockType::Line, Orientation::Left).translate(-2, 0),
             (BlockType::Square, Orientation::Up) => Block::new(BlockType::Square, Orientation::Up),
             (BlockType::L, Orientation::Up) => Block::new(BlockType::L, Orientation::Right),
             (BlockType::L, Orientation::Right) => Block::new(BlockType::L, Orientation::Down),
