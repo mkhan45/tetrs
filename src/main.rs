@@ -1,7 +1,7 @@
 //#![feature(stmt_expr_attributes)] //for rustfmt
 extern crate ggez;
 use ggez::{
-    event,
+    event, timer,
     event::EventHandler,
     graphics,
     graphics::{Color, DrawMode, DrawParam, MeshBuilder},
@@ -54,6 +54,7 @@ struct MainState {
     pub block_index: usize,
     pub used_hold: bool,
     pub queued_queue: [usize; 14],
+    pub lines: usize,
 }
 
 pub fn generate_queue() -> [usize; 14] {
@@ -78,17 +79,19 @@ impl MainState {
             })
         .collect();
 
-    MainState {
-        squares,
-        current_block,
-        positions,
-        update_timer: 0,
-        held_block: None,
-        queue: generate_queue(),
-        block_index: 0,
-        used_hold: false,
-        queued_queue: generate_queue(),
-    }
+        MainState {
+            squares,
+            current_block,
+            positions,
+            update_timer: 0,
+            held_block: None,
+            queue: generate_queue(),
+            block_index: 0,
+            used_hold: false,
+            queued_queue: generate_queue(),
+            lines: 0,
+        }
+
     }
 
     fn reset(&mut self) {}
@@ -108,7 +111,7 @@ impl MainState {
 }
 
 impl EventHandler for MainState {
-    fn update(&mut self, _ctx: &mut Context) -> GameResult {
+    fn update(&mut self, ctx: &mut Context) -> GameResult {
         self.update_timer += 1;
         if self.update_timer >= TICK_INTERVAL {
             self.update_timer = 0;
@@ -145,7 +148,10 @@ impl EventHandler for MainState {
 
                 (min_y..=max_y).for_each(|y| {
                     let row = self.squares.iter().filter(|square| square.pos.1 == y);
-                    if row.clone().count() >= X_SQUARES.try_into().unwrap() {
+                    if row.count() >= X_SQUARES.try_into().unwrap() {
+                        self.lines += 1;
+                        println!("{} Lines in {}", self.lines, duration_display(timer::time_since_start(ctx)));
+
                         self.squares = self
                             .squares
                             .iter()
@@ -265,10 +271,6 @@ impl EventHandler for MainState {
             KeyCode::Right => self.try_translate(1, 0),
             KeyCode::Down => self.try_translate(0, 1),
             KeyCode::Up => {
-                // if self.current_block.rotate().is_valid(&self.squares) {
-                //     self.current_block = self.current_block.rotate()
-                // }
-                
                 let rotated = self.current_block.rotate();
 
                 let overflow = self.current_block.rotate().squares.iter().fold(0, |over, square|{
@@ -322,4 +324,9 @@ fn main() -> GameResult {
     let main_state = &mut MainState::new();
 
     event::run(ctx, event_loop, main_state)
+}
+
+fn duration_display(duration: std::time::Duration) -> String{
+    let (mins, secs) = (duration.as_secs() / 60, duration.as_secs() % 60);
+    format!("{}:{}", mins, secs)
 }
