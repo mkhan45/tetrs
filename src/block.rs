@@ -18,12 +18,7 @@ pub struct Square {
 impl Square {
     fn bottom(x: isize) -> Self {
         Square {
-            rect: Rect::new(
-                x as f32 * SQUARE_SIZE,
-                SCREEN_HEIGHT,
-                5.,
-                5.,
-            ),
+            rect: Rect::new(x as f32 * SQUARE_SIZE, SCREEN_HEIGHT, 5., 5.),
             pos: (x, Y_SQUARES),
             color: Color::new(1.0, 1.0, 1.0, 1.0),
         }

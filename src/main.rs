@@ -1,16 +1,18 @@
 //#![feature(stmt_expr_attributes)] //for rustfmt
 extern crate ggez;
 use ggez::{
-    event, timer,
+    event,
     event::EventHandler,
     graphics,
     graphics::{Color, DrawMode, DrawParam, MeshBuilder},
     input::keyboard,
     input::keyboard::KeyCode,
-    Context, GameResult,
+    timer, Context, GameResult,
 };
 
 use std::convert::TryInto;
+
+use std::fs::File;
 
 use rand::seq::SliceRandom;
 use rand::thread_rng;
@@ -20,12 +22,12 @@ extern crate rand;
 mod block;
 use block::*;
 
-const SCREEN_HEIGHT: f32 = 700.;
-const SCREEN_WIDTH: f32 = 350.;
-const SCREEN_WIDTHER: f32 = 600.;
+const SCREEN_HEIGHT: f32 = 600.;
+const SCREEN_WIDTH: f32 = 300.;
+const SCREEN_WIDTHER: f32 = 500.;
 
-const X_SQUARES: isize = 15;
-const Y_SQUARES: isize = 30;
+const X_SQUARES: isize = 10;
+const Y_SQUARES: isize = 20;
 
 const SQUARE_SIZE: f32 = SCREEN_HEIGHT / Y_SQUARES as f32;
 
@@ -77,7 +79,7 @@ impl MainState {
                     .map(|y_index| (x_index as f32 * SQUARE_SIZE, y_index as f32 * SQUARE_SIZE))
                     .collect::<Vec<(f32, f32)>>()
             })
-        .collect();
+            .collect();
 
         MainState {
             squares,
@@ -91,7 +93,6 @@ impl MainState {
             queued_queue: generate_queue(),
             lines: 0,
         }
-
     }
 
     fn reset(&mut self) {}
@@ -150,7 +151,6 @@ impl EventHandler for MainState {
                     let row = self.squares.iter().filter(|square| square.pos.1 == y);
                     if row.count() >= X_SQUARES.try_into().unwrap() {
                         self.lines += 1;
-                        println!("{} Lines in {}", self.lines, duration_display(timer::time_since_start(ctx)));
 
                         self.squares = self
                             .squares
@@ -163,7 +163,7 @@ impl EventHandler for MainState {
                                     *square
                                 }
                             })
-                        .collect()
+                            .collect()
                     }
                 });
 
@@ -176,6 +176,19 @@ impl EventHandler for MainState {
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
         graphics::clear(ctx, graphics::Color::new(0.0, 0.0, 0.0, 1.0));
+
+        let info_text = graphics::Text::new(
+            format! {"Lines: {}\n{}", self.lines, duration_display(timer::time_since_start(ctx))},
+        );
+
+        graphics::draw(
+            ctx,
+            &info_text,
+            DrawParam::new()
+                .dest([SCREEN_WIDTH + 25., 10.])
+                .scale([1.3, 1.3]),
+        )
+        .unwrap();
 
         let mut mesh = MeshBuilder::new();
 
@@ -202,54 +215,46 @@ impl EventHandler for MainState {
         }
 
         //#[rustfmt::skip]
-        for i in self.block_index..(self.block_index + 4) {
-            let future_type = if i < 14 {TYPES[self.queue[i]]} else {TYPES[self.queued_queue[i - 13]]};
+        for i in self.block_index..(self.block_index + 3) {
+            let future_type = if i < 14 {
+                TYPES[self.queue[i]]
+            } else {
+                TYPES[self.queued_queue[i - 13]]
+            };
             let future_block = Block::new(future_type, Orientation::Up).translate(
-                X_SQUARES + 4,
-                (8 + 5 * (i - self.block_index)).try_into().unwrap(),
+                X_SQUARES + 2,
+                (6 + 5 * (i - self.block_index)).try_into().unwrap(),
             );
 
             future_block.squares.iter().for_each(|square| {
-                mesh.rectangle(
-                    DrawMode::fill(),
-                    square.rect,
-                    color(future_block.blocktype),
-                );
+                mesh.rectangle(DrawMode::fill(), square.rect, color(future_block.blocktype));
             });
         }
 
-        if let Some(held_type) = self.held_block{
-            let held = Block::new(held_type, Orientation::Up).translate(
-                X_SQUARES + 4,
-                1,
-            );
+        if let Some(held_type) = self.held_block {
+            let held = Block::new(held_type, Orientation::Up).translate(X_SQUARES + 2, 2);
 
-            held.squares.iter().for_each(|square|{
-                mesh.rectangle(
-                    DrawMode::fill(),
-                    square.rect,
-                    color(held_type),
-                );
+            held.squares.iter().for_each(|square| {
+                mesh.rectangle(DrawMode::fill(), square.rect, color(held_type));
             });
         }
-
 
         mesh.line(
             &[
-            [SCREEN_WIDTH as f32, 0.],
-            [SCREEN_WIDTH as f32, SCREEN_HEIGHT as f32],
+                [SCREEN_WIDTH as f32, 0.],
+                [SCREEN_WIDTH as f32, SCREEN_HEIGHT as f32],
             ],
             2.,
             Color::new(1.0, 1.0, 1.0, 1.0),
         )
-            .unwrap();
+        .unwrap();
 
         mesh.line(
             &[[SCREEN_WIDTH as f32, 150.], [SCREEN_WIDTHER as f32, 150.]],
             2.,
             Color::new(1.0, 1.0, 1.0, 1.0),
         )
-            .unwrap();
+        .unwrap();
 
         let mesh = &mesh.build(ctx).unwrap();
 
@@ -273,28 +278,37 @@ impl EventHandler for MainState {
             KeyCode::Up => {
                 let rotated = self.current_block.rotate();
 
-                let overflow = self.current_block.rotate().squares.iter().fold(0, |over, square|{
-                    if square.pos.0 >= X_SQUARES && square.pos.0 - X_SQUARES + 1 > over {
-                        square.pos.0 - X_SQUARES + 1
-                    } else if square.pos.0 < 0 && square.pos.0 < over {
-                        square.pos.0
-                    }
-                    else { over }
-                });
+                let overflow =
+                    self.current_block
+                        .rotate()
+                        .squares
+                        .iter()
+                        .fold(0, |over, square| {
+                            if square.pos.0 >= X_SQUARES && square.pos.0 - X_SQUARES + 1 > over {
+                                square.pos.0 - X_SQUARES + 1
+                            } else if square.pos.0 < 0 && square.pos.0 < over {
+                                square.pos.0
+                            } else {
+                                over
+                            }
+                        });
 
                 self.current_block = rotated.translate(-1 * overflow, 0);
-            },
+            }
             KeyCode::Space => {
                 self.try_translate(0, self.current_block.max_drop(&self.squares));
                 self.update_timer = TICK_INTERVAL;
-            },
+            }
             KeyCode::C => {
-                if !self.used_hold{
+                if !self.used_hold {
                     self.used_hold = true;
                     let saved_current = self.current_block.blocktype;
-                    self.current_block = match self.held_block{
-                        Some(blocktype) => Block::new(blocktype, Orientation::Up).translate(X_SQUARES/2, 0),
-                        None => { //duplicated code oops
+                    self.current_block = match self.held_block {
+                        Some(blocktype) => {
+                            Block::new(blocktype, Orientation::Up).translate(X_SQUARES / 2, 0)
+                        }
+                        None => {
+                            //duplicated code oops
                             if self.block_index == 14 {
                                 self.update_queue();
                                 self.block_index = 0;
@@ -303,12 +317,12 @@ impl EventHandler for MainState {
                             let new_blocktype = TYPES[self.queue[self.block_index]];
                             self.block_index += 1;
 
-                            Block::new(new_blocktype, Orientation::Up).translate(X_SQUARES/2, 0)
+                            Block::new(new_blocktype, Orientation::Up).translate(X_SQUARES / 2, 0)
                         }
                     };
                     self.held_block = Some(saved_current);
                 }
-            },
+            }
             _ => {}
         }
     }
@@ -326,7 +340,7 @@ fn main() -> GameResult {
     event::run(ctx, event_loop, main_state)
 }
 
-fn duration_display(duration: std::time::Duration) -> String{
+fn duration_display(duration: std::time::Duration) -> String {
     let (mins, secs) = (duration.as_secs() / 60, duration.as_secs() % 60);
     format!("{}:{}", mins, secs)
 }
