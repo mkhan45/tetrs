@@ -53,6 +53,7 @@ struct MainState {
     pub queue: [usize; 14],
     pub block_index: usize,
     pub used_hold: bool,
+    pub queued_queue: [usize; 14],
 }
 
 pub fn generate_queue() -> [usize; 14] {
@@ -86,6 +87,7 @@ impl MainState {
         queue: generate_queue(),
         block_index: 0,
         used_hold: false,
+        queued_queue: generate_queue(),
     }
     }
 
@@ -100,7 +102,8 @@ impl MainState {
 
     fn update_queue(&mut self) {
         let mut rng = thread_rng();
-        self.queue.shuffle(&mut rng);
+        self.queue = self.queued_queue;
+        self.queued_queue.shuffle(&mut rng);
     }
 }
 
@@ -193,8 +196,8 @@ impl EventHandler for MainState {
         }
 
         //#[rustfmt::skip]
-        for i in self.block_index..(if self.block_index + 5 < 14 { self.block_index + 5 } else { 13 }) {
-            let future_type = TYPES[self.queue[i]];
+        for i in self.block_index..(self.block_index + 4) {
+            let future_type = if i < 14 {TYPES[self.queue[i]]} else {TYPES[self.queued_queue[i - 13]]};
             let future_block = Block::new(future_type, Orientation::Up).translate(
                 X_SQUARES + 4,
                 (8 + 5 * (i - self.block_index)).try_into().unwrap(),
@@ -262,9 +265,22 @@ impl EventHandler for MainState {
             KeyCode::Right => self.try_translate(1, 0),
             KeyCode::Down => self.try_translate(0, 1),
             KeyCode::Up => {
-                if self.current_block.rotate().is_valid(&self.squares) {
-                    self.current_block = self.current_block.rotate()
-                }
+                // if self.current_block.rotate().is_valid(&self.squares) {
+                //     self.current_block = self.current_block.rotate()
+                // }
+                
+                let rotated = self.current_block.rotate();
+
+                let overflow = self.current_block.rotate().squares.iter().fold(0, |over, square|{
+                    if square.pos.0 >= X_SQUARES && square.pos.0 - X_SQUARES + 1 > over {
+                        square.pos.0 - X_SQUARES + 1
+                    } else if square.pos.0 < 0 && square.pos.0 < over {
+                        square.pos.0
+                    }
+                    else { over }
+                });
+
+                self.current_block = rotated.translate(-1 * overflow, 0);
             },
             KeyCode::Space => {
                 self.try_translate(0, self.current_block.max_drop(&self.squares));
