@@ -12,8 +12,6 @@ use ggez::{
 
 use std::convert::TryInto;
 
-use std::fs::File;
-
 use rand::seq::SliceRandom;
 use rand::thread_rng;
 
@@ -24,7 +22,7 @@ use block::*;
 
 const SCREEN_HEIGHT: f32 = 600.;
 const SCREEN_WIDTH: f32 = 300.;
-const SCREEN_WIDTHER: f32 = 500.;
+const SCREEN_WIDTHER: f32 = SCREEN_WIDTH * 1.7;
 
 const X_SQUARES: isize = 10;
 const Y_SQUARES: isize = 20;
@@ -95,8 +93,6 @@ impl MainState {
         }
     }
 
-    fn reset(&mut self) {}
-
     fn try_translate(&mut self, x: isize, y: isize) {
         let translated = self.current_block.translate(x, y);
         if translated.is_valid(&self.squares) {
@@ -129,6 +125,21 @@ impl EventHandler for MainState {
 
                 let blocktype = TYPES[self.queue[self.block_index]];
                 self.block_index += 1;
+
+                if self
+                    .current_block
+                    .squares
+                    .iter()
+                    .any(|square| square.pos.1 < 0)
+                {
+                    println!("Game Over");
+                    println!(
+                        "You completed {} lines in {}",
+                        self.lines,
+                        duration_display(timer::time_since_start(ctx))
+                    );
+                    ggez::quit(ctx);
+                };
 
                 self.squares.append(&mut self.current_block.squares);
                 self.used_hold = false;
@@ -167,8 +178,9 @@ impl EventHandler for MainState {
                     }
                 });
 
-                self.current_block =
-                    Block::new(blocktype, Orientation::Up).translate(X_SQUARES / 2, 0);
+                self.current_block = Block::new(blocktype, Orientation::Up)
+                    .translate(X_SQUARES / 2, 0)
+                    .translate(0, -5);
             }
         }
         Ok(())
@@ -293,7 +305,7 @@ impl EventHandler for MainState {
                             }
                         });
 
-                self.current_block = rotated.translate(-1 * overflow, 0);
+                self.current_block = rotated.translate(-overflow, 0);
             }
             KeyCode::Space => {
                 self.try_translate(0, self.current_block.max_drop(&self.squares));
@@ -305,7 +317,7 @@ impl EventHandler for MainState {
                     let saved_current = self.current_block.blocktype;
                     self.current_block = match self.held_block {
                         Some(blocktype) => {
-                            Block::new(blocktype, Orientation::Up).translate(X_SQUARES / 2, 0)
+                            Block::new(blocktype, Orientation::Up).translate(X_SQUARES / 2, -5)
                         }
                         None => {
                             //duplicated code oops
@@ -317,7 +329,7 @@ impl EventHandler for MainState {
                             let new_blocktype = TYPES[self.queue[self.block_index]];
                             self.block_index += 1;
 
-                            Block::new(new_blocktype, Orientation::Up).translate(X_SQUARES / 2, 0)
+                            Block::new(new_blocktype, Orientation::Up).translate(X_SQUARES / 2, -5)
                         }
                     };
                     self.held_block = Some(saved_current);
@@ -331,11 +343,20 @@ impl EventHandler for MainState {
 fn main() -> GameResult {
     let (ctx, event_loop) = &mut ggez::ContextBuilder::new("Tetrs", "Fish")
         .window_setup(ggez::conf::WindowSetup::default().title("Tetrs"))
-        .window_mode(ggez::conf::WindowMode::default().dimensions(SCREEN_WIDTHER, SCREEN_HEIGHT))
+        .window_mode(
+            ggez::conf::WindowMode::default()
+                .dimensions(SCREEN_WIDTHER, SCREEN_HEIGHT)
+                .resizable(false),
+        )
         .build()
         .expect("error building context");
 
     let main_state = &mut MainState::new();
+
+    // let resource_dir = ggez::filesystem::resources_dir(ctx);
+
+    // let font = ggez::filesystem::open(ctx, resource_dir.join("Nitaka.ttf"));
+    // dbg!(font);
 
     event::run(ctx, event_loop, main_state)
 }
