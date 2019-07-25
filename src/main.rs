@@ -24,8 +24,8 @@ const SCREEN_HEIGHT: f32 = 600.;
 const SCREEN_WIDTH: f32 = 300.;
 const SCREEN_WIDTHER: f32 = SCREEN_WIDTH * 1.7;
 
-const X_SQUARES: isize = 10;
-const Y_SQUARES: isize = 20;
+const X_SQUARES: i8 = 10;
+const Y_SQUARES: i8 = 20;
 
 const SQUARE_SIZE: f32 = SCREEN_HEIGHT / Y_SQUARES as f32;
 
