@@ -11,12 +11,12 @@ use crate::BORDER_SIZE;
 #[derive(Clone, Copy, Debug)]
 pub struct Square {
     pub rect: Rect,
-    pub pos: (isize, isize),
+    pub pos: (i8, i8),
     pub color: Color,
 }
 
 impl Square {
-    fn bottom(x: isize) -> Self {
+    fn bottom(x: i8) -> Self {
         Square {
             rect: Rect::new(x as f32 * SQUARE_SIZE, SCREEN_HEIGHT, 5., 5.),
             pos: (x, Y_SQUARES),
@@ -24,7 +24,7 @@ impl Square {
         }
     }
 
-    pub fn max_y_translate(&self, board: &[Square]) -> isize {
+    pub fn max_y_translate(&self, board: &[Square]) -> i8 {
         let max_square = board
             .iter()
             .filter(|square| square.pos.0 == self.pos.0 && square.pos.1 >= self.pos.1)
@@ -38,20 +38,20 @@ impl Square {
         max_square.pos.1 - self.pos.1
     }
 
-    pub fn translate(&self, x: isize, y: isize) -> Square {
+    pub fn translate(&self, x: i8, y: i8) -> Square {
         let mut new_rect = self.rect;
         new_rect.translate([x as f32 * SQUARE_SIZE, y as f32 * SQUARE_SIZE]);
         Square {
             rect: new_rect,
             pos: (
-                (self.pos.0 as isize + x) as isize,
-                (self.pos.1 as isize + y) as isize,
+                self.pos.0 + x,
+                self.pos.1 + y,
             ),
             color: self.color,
         }
     }
 
-    fn new(x: isize, y: isize, color: Color) -> Self {
+    fn new(x: i8, y: i8, color: Color) -> Self {
         Square {
             rect: Rect::new(
                 x as f32 * SQUARE_SIZE + BORDER_SIZE,
@@ -340,7 +340,7 @@ impl Block {
         }.translate(self.squares[0].pos.0, self.squares[1].pos.1)
     }
 
-    pub fn translate(&self, x: isize, y: isize) -> Block {
+    pub fn translate(&self, x: i8, y: i8) -> Block {
         let mut cloned = self.squares.clone();
         let cloned: Vec<Square> = cloned
             .iter_mut()
@@ -368,21 +368,7 @@ impl Block {
             })
     }
 
-    //this should be replaced with min_squares and return a vector of the bottommost squares
-    pub fn min_square(&self, x: isize) -> Square {
-        self.squares.iter().filter(|square| square.pos.0 == x).fold(
-            self.squares[0],
-            |min_square, current_square| {
-                if current_square.pos.1 > min_square.pos.1 {
-                    *current_square
-                } else {
-                    min_square
-                }
-            },
-        )
-    }
-
-    pub fn max_drop(&self, board: &[Square]) -> isize {
+    pub fn max_drop(&self, board: &[Square]) -> i8 {
         // this is probably only faster if the blocks are made of like 20 squares or more
 
         // let (min_x, max_x) = self
@@ -415,7 +401,7 @@ impl Block {
         // }
         // return 0;
 
-        self.squares.iter().fold(Y_SQUARES, |max_dist, square| {
+        self.squares.iter().fold(Y_SQUARES + 5, |max_dist, square| {
             let square_max = square.max_y_translate(board);
             if square_max < max_dist {
                 square_max

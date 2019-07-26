@@ -66,10 +66,10 @@ pub fn generate_queue() -> [usize; 14] {
 
 impl MainState {
     fn new() -> Self {
-        let squares = Vec::with_capacity((X_SQUARES * Y_SQUARES).try_into().unwrap());
+        let squares = Vec::with_capacity((X_SQUARES as i16 * Y_SQUARES as i16).try_into().unwrap());
 
         let current_block =
-            Block::new(BlockType::Line, Orientation::Up).translate(X_SQUARES as isize / 2, 0);
+            Block::new(BlockType::Line, Orientation::Up).translate(X_SQUARES as i8 / 2, 0);
 
         let positions: Vec<Vec<(f32, f32)>> = (0..X_SQUARES)
             .map(|x_index| {
@@ -93,7 +93,7 @@ impl MainState {
         }
     }
 
-    fn try_translate(&mut self, x: isize, y: isize) {
+    fn try_translate(&mut self, x: i8, y: i8) {
         let translated = self.current_block.translate(x, y);
         if translated.is_valid(&self.squares) {
             self.current_block = translated;
