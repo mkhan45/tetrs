@@ -74,7 +74,12 @@ impl MainState {
         let positions: Vec<Vec<(f32, f32)>> = (0..X_SQUARES)
             .map(|x_index| {
                 (0..Y_SQUARES)
-                    .map(|y_index| (x_index as f32 * SQUARE_SIZE, y_index as f32 * SQUARE_SIZE))
+                    .map(|y_index| {
+                        (
+                            f32::from(x_index) * SQUARE_SIZE,
+                            f32::from(y_index) * SQUARE_SIZE,
+                        )
+                    })
                     .collect::<Vec<(f32, f32)>>()
             })
             .collect();
