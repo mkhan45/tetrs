@@ -8,6 +8,8 @@ use crate::Y_SQUARES;
 
 use crate::BORDER_SIZE;
 
+use std::convert::TryInto;
+
 #[derive(Clone, Copy, Debug)]
 pub struct Square {
     pub rect: Rect,
@@ -83,7 +85,7 @@ pub enum BlockType {
 
 #[derive(Clone)]
 pub struct Block {
-    pub squares: Vec<Square>,
+    pub squares: [Square; 4],
     pub blocktype: BlockType,
     pub orientation: Orientation,
 }
@@ -106,19 +108,25 @@ impl Block {
             (BlockType::Line, Orientation::Up) => Block {
                 squares: (0..4)
                     .map(|y_index| Square::new(0, y_index, color(blocktype)))
-                    .collect(),
+                    .collect::<Vec<Square>>()
+                    .as_slice()
+                    .try_into()
+                    .unwrap(),
                 blocktype,
                 orientation,
             },
             (BlockType::Line, Orientation::Left) => Block {
                 squares: (0..4)
                     .map(|x_index| Square::new(x_index, 0, color(blocktype)))
-                    .collect(),
+                    .collect::<Vec<Square>>()
+                    .as_slice()
+                    .try_into()
+                    .unwrap(),
                 blocktype,
                 orientation,
             },
             (BlockType::Square, Orientation::Up) => Block {
-                squares: vec![
+                squares: [
                     Square::new(0, 0, color(blocktype)),
                     Square::new(0, 1, color(blocktype)),
                     Square::new(1, 0, color(blocktype)),
@@ -129,7 +137,7 @@ impl Block {
                 orientation,
             },
             (BlockType::L, Orientation::Up) => Block {
-                squares: vec![
+                squares: [
                     Square::new(0, 0, color(blocktype)),
                     Square::new(0, 1, color(blocktype)),
                     Square::new(0, 2, color(blocktype)),
@@ -140,7 +148,7 @@ impl Block {
                 orientation,
             },
             (BlockType::L, Orientation::Right) => Block {
-                squares: vec![
+                squares: [
                     Square::new(0, 0, color(blocktype)),
                     Square::new(0, 1, color(blocktype)),
                     Square::new(1, 0, color(blocktype)),
@@ -151,7 +159,7 @@ impl Block {
                 orientation,
             },
             (BlockType::L, Orientation::Down) => Block {
-                squares: vec![
+                squares: [
                     Square::new(0, 0, color(blocktype)),
                     Square::new(1, 0, color(blocktype)),
                     Square::new(1, 1, color(blocktype)),
@@ -162,7 +170,7 @@ impl Block {
                 orientation,
             },
             (BlockType::L, Orientation::Left) => Block {
-                squares: vec![
+                squares: [
                     Square::new(0, 1, color(blocktype)),
                     Square::new(1, 1, color(blocktype)),
                     Square::new(2, 1, color(blocktype)),
@@ -173,7 +181,7 @@ impl Block {
                 orientation,
             },
             (BlockType::ReverseL, Orientation::Up) => Block {
-                squares: vec![
+                squares: [
                     Square::new(1, 0, color(blocktype)),
                     Square::new(1, 1, color(blocktype)),
                     Square::new(1, 2, color(blocktype)),
@@ -184,7 +192,7 @@ impl Block {
                 orientation,
             },
             (BlockType::ReverseL, Orientation::Right) => Block {
-                squares: vec![
+                squares: [
                     Square::new(0, 0, color(blocktype)),
                     Square::new(0, 1, color(blocktype)),
                     Square::new(1, 1, color(blocktype)),
@@ -195,7 +203,7 @@ impl Block {
                 orientation,
             },
             (BlockType::ReverseL, Orientation::Down) => Block {
-                squares: vec![
+                squares: [
                     Square::new(0, 0, color(blocktype)),
                     Square::new(1, 0, color(blocktype)),
                     Square::new(0, 1, color(blocktype)),
@@ -206,7 +214,7 @@ impl Block {
                 orientation,
             },
             (BlockType::ReverseL, Orientation::Left) => Block {
-                squares: vec![
+                squares: [
                     Square::new(0, 0, color(blocktype)),
                     Square::new(1, 0, color(blocktype)),
                     Square::new(2, 0, color(blocktype)),
@@ -217,7 +225,7 @@ impl Block {
                 orientation,
             },
             (BlockType::S, Orientation::Up) => Block {
-                squares: vec![
+                squares: [
                     Square::new(0, 0, color(blocktype)),
                     Square::new(0, 1, color(blocktype)),
                     Square::new(1, 1, color(blocktype)),
@@ -228,7 +236,7 @@ impl Block {
                 orientation,
             },
             (BlockType::S, Orientation::Left) => Block {
-                squares: vec![
+                squares: [
                     Square::new(0, 1, color(blocktype)),
                     Square::new(1, 1, color(blocktype)),
                     Square::new(1, 0, color(blocktype)),
@@ -239,7 +247,7 @@ impl Block {
                 orientation,
             },
             (BlockType::Z, Orientation::Up) => Block {
-                squares: vec![
+                squares: [
                     Square::new(1, 0, color(blocktype)),
                     Square::new(1, 1, color(blocktype)),
                     Square::new(0, 1, color(blocktype)),
@@ -250,7 +258,7 @@ impl Block {
                 orientation,
             },
             (BlockType::Z, Orientation::Left) => Block {
-                squares: vec![
+                squares: [
                     Square::new(0, 0, color(blocktype)),
                     Square::new(1, 0, color(blocktype)),
                     Square::new(1, 1, color(blocktype)),
@@ -261,7 +269,7 @@ impl Block {
                 orientation,
             },
             (BlockType::T, Orientation::Up) => Block {
-                squares: vec![
+                squares: [
                     Square::new(1, 0, color(blocktype)),
                     Square::new(0, 1, color(blocktype)),
                     Square::new(1, 1, color(blocktype)),
@@ -272,7 +280,7 @@ impl Block {
                 orientation,
             },
             (BlockType::T, Orientation::Right) => Block {
-                squares: vec![
+                squares: [
                     Square::new(0, 0, color(blocktype)),
                     Square::new(0, 1, color(blocktype)),
                     Square::new(0, 2, color(blocktype)),
@@ -283,7 +291,7 @@ impl Block {
                 orientation,
             },
             (BlockType::T, Orientation::Down) => Block {
-                squares: vec![
+                squares: [
                     Square::new(0, 0, color(blocktype)),
                     Square::new(1, 0, color(blocktype)),
                     Square::new(2, 0, color(blocktype)),
@@ -294,7 +302,7 @@ impl Block {
                 orientation,
             },
             (BlockType::T, Orientation::Left) => Block {
-                squares: vec![
+                squares: [
                     Square::new(1, 0, color(blocktype)),
                     Square::new(1, 1, color(blocktype)),
                     Square::new(1, 2, color(blocktype)),
@@ -338,13 +346,13 @@ impl Block {
     }
 
     pub fn translate(&self, x: i8, y: i8) -> Block {
-        let mut cloned = self.squares.clone();
+        let mut cloned = self.squares;
         let cloned: Vec<Square> = cloned
             .iter_mut()
             .map(|square| square.translate(x, y))
             .collect();
         Block {
-            squares: cloned,
+            squares: cloned.as_slice().try_into().unwrap(),
             orientation: self.orientation,
             blocktype: self.blocktype,
         }

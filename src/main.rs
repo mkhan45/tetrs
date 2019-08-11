@@ -66,7 +66,11 @@ pub fn generate_queue() -> [usize; 14] {
 
 impl MainState {
     fn new() -> Self {
-        let squares = Vec::with_capacity((i16::from(X_SQUARES) * i16::from(Y_SQUARES)).try_into().unwrap());
+        let squares = Vec::with_capacity(
+            (i16::from(X_SQUARES) * i16::from(Y_SQUARES))
+                .try_into()
+                .unwrap(),
+        );
 
         let current_block =
             Block::new(BlockType::Line, Orientation::Up).translate(X_SQUARES as i8 / 2, 0);
@@ -133,9 +137,9 @@ impl EventHandler for MainState {
 
                 if self
                     .current_block
-                        .squares
-                        .iter()
-                        .any(|square| square.pos.1 < 0)
+                    .squares
+                    .iter()
+                    .any(|square| square.pos.1 < 0)
                 {
                     println!("Game Over");
                     println!(
@@ -143,29 +147,35 @@ impl EventHandler for MainState {
                         self.lines,
                         duration_display(timer::time_since_start(ctx))
                     );
-                    println!("Lose: {} {}", self.lines, timer::time_since_start(ctx).as_secs());
+                    println!(
+                        "Lose: {} {}",
+                        self.lines,
+                        timer::time_since_start(ctx).as_secs()
+                    );
                     ggez::quit(ctx);
                 };
 
-                self.squares.append(&mut self.current_block.squares);
+                self.squares
+                    .append(&mut self.current_block.squares.to_vec());
                 self.used_hold = false;
 
                 let (min_y, max_y) = find_minmax(&self.current_block.squares);
 
                 (min_y..=max_y).for_each(|y| {
-                    let row = self.squares.iter().filter(|square| square.pos.1 == y);
-                    if row.count() >= X_SQUARES.try_into().unwrap() {
+                    let row_cnt = self
+                        .squares
+                        .iter()
+                        .filter(|square| square.pos.1 == y)
+                        .count();
+
+                    if row_cnt >= X_SQUARES.try_into().unwrap() {
                         self.lines += 1;
 
                         if self.lines == 40 {
-                            println!(
-                                "Time: {}",
-                                timer::time_since_start(ctx).as_secs()
-                            );
+                            println!("Time: {}", timer::time_since_start(ctx).as_secs());
                             ggez::quit(ctx);
                         }
 
-                        //clears lines
                         self.squares = clear_lines(&self.squares, y);
                     }
                 });
@@ -173,7 +183,7 @@ impl EventHandler for MainState {
                 self.current_block = Block::new(blocktype, Orientation::Up)
                     .translate(X_SQUARES / 2, 0)
                     .translate(0, -5);
-                }
+            }
         }
         Ok(())
     }
@@ -189,10 +199,10 @@ impl EventHandler for MainState {
             ctx,
             &info_text,
             DrawParam::new()
-            .dest([SCREEN_WIDTH + 25., 10.])
-            .scale([1.3, 1.3]),
+                .dest([SCREEN_WIDTH + 25., 10.])
+                .scale([1.3, 1.3]),
         )
-            .unwrap();
+        .expect("Error drawing info text");
 
         let mut mesh = MeshBuilder::new();
 
@@ -245,20 +255,20 @@ impl EventHandler for MainState {
 
         mesh.line(
             &[
-            [SCREEN_WIDTH as f32, 0.],
-            [SCREEN_WIDTH as f32, SCREEN_HEIGHT as f32],
+                [SCREEN_WIDTH as f32, 0.],
+                [SCREEN_WIDTH as f32, SCREEN_HEIGHT as f32],
             ],
             2.,
             Color::new(1.0, 1.0, 1.0, 1.0),
         )
-            .unwrap();
+        .unwrap();
 
         mesh.line(
             &[[SCREEN_WIDTH as f32, 150.], [SCREEN_WIDTHER as f32, 150.]],
             2.,
             Color::new(1.0, 1.0, 1.0, 1.0),
         )
-            .unwrap();
+        .unwrap();
 
         let mesh = &mesh.build(ctx).unwrap();
 
@@ -284,18 +294,18 @@ impl EventHandler for MainState {
 
                 let overflow =
                     self.current_block
-                    .rotate()
-                    .squares
-                    .iter()
-                    .fold(0, |over, square| {
-                        if square.pos.0 >= X_SQUARES && square.pos.0 - X_SQUARES + 1 > over {
-                            square.pos.0 - X_SQUARES + 1
-                        } else if square.pos.0 < 0 && square.pos.0 < over {
-                            square.pos.0
-                        } else {
-                            over
-                        }
-                    });
+                        .rotate()
+                        .squares
+                        .iter()
+                        .fold(0, |over, square| {
+                            if square.pos.0 >= X_SQUARES && square.pos.0 - X_SQUARES + 1 > over {
+                                square.pos.0 - X_SQUARES + 1
+                            } else if square.pos.0 < 0 && square.pos.0 < over {
+                                square.pos.0
+                            } else {
+                                over
+                            }
+                        });
 
                 self.current_block = rotated.translate(-overflow, 0);
             }
@@ -332,23 +342,20 @@ impl EventHandler for MainState {
     }
 }
 
-fn find_minmax(squares: &Vec<Square>) -> (i8, i8){
-    squares.iter().fold(
-        (0, Y_SQUARES),
-        |(min, max), current| {
-            let current_y = current.pos.1;
-            if current_y < min {
-                (current_y, max)
-            } else if current_y > max {
-                (min, current_y)
-            } else {
-                (min, max)
-            }
-        },
-    )
+fn find_minmax(squares: &[Square]) -> (i8, i8) {
+    squares.iter().fold((0, Y_SQUARES), |(min, max), current| {
+        let current_y = current.pos.1;
+        if current_y < min {
+            (current_y, max)
+        } else if current_y > max {
+            (min, current_y)
+        } else {
+            (min, max)
+        }
+    })
 }
 
-fn clear_lines(squares: &Vec<Square>, row_y: i8) -> Vec<Square>{
+fn clear_lines(squares: &[Square], row_y: i8) -> Vec<Square> {
     squares
         .iter()
         .filter(|square| square.pos.1 != row_y)
@@ -359,7 +366,7 @@ fn clear_lines(squares: &Vec<Square>, row_y: i8) -> Vec<Square>{
                 *square
             }
         })
-    .collect()
+        .collect()
 }
 
 fn main() -> GameResult {
@@ -367,8 +374,8 @@ fn main() -> GameResult {
         .window_setup(ggez::conf::WindowSetup::default().title("Tetrs"))
         .window_mode(
             ggez::conf::WindowMode::default()
-            .dimensions(SCREEN_WIDTHER, SCREEN_HEIGHT)
-            .resizable(false),
+                .dimensions(SCREEN_WIDTHER, SCREEN_HEIGHT)
+                .resizable(false),
         )
         .build()
         .expect("error building context");
