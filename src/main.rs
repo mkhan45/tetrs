@@ -387,5 +387,9 @@ fn main() -> GameResult {
 
 fn duration_display(duration: std::time::Duration) -> String {
     let (mins, secs) = (duration.as_secs() / 60, duration.as_secs() % 60);
-    format!("{}:{}", mins, secs)
+    if secs < 10 {
+        format!("{}:0{}", mins, secs)
+    } else {
+        format!("{}:{}", mins, secs)
+    }
 }
