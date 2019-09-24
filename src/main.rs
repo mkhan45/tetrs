@@ -286,10 +286,10 @@ impl EventHandler for MainState {
         _repeat: bool,
     ) {
         match keycode {
-            KeyCode::Left => self.try_translate(-1, 0),
-            KeyCode::Right => self.try_translate(1, 0),
-            KeyCode::Down => self.try_translate(0, 1),
-            KeyCode::Up => {
+            KeyCode::Left  | KeyCode::H => self.try_translate(-1, 0),
+            KeyCode::Right | KeyCode::L => self.try_translate(1, 0),
+            KeyCode::Down  | KeyCode::J => self.try_translate(0, 1),
+            KeyCode::Up    | KeyCode::K => {
                 let rotated = self.current_block.rotate();
 
                 let overflow =
