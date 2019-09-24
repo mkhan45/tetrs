@@ -1,4 +1,3 @@
-//#![feature(stmt_expr_attributes)] //for rustfmt
 extern crate ggez;
 use ggez::{
     event,
@@ -47,7 +46,6 @@ const TYPES: [BlockType; 7] = [
 struct MainState {
     pub squares: Vec<Square>,
     pub current_block: Block,
-    pub positions: Vec<Vec<(f32, f32)>>,
     pub update_timer: usize,
     pub held_block: Option<BlockType>,
     pub queue: [usize; 14],
@@ -75,23 +73,9 @@ impl MainState {
         let current_block =
             Block::new(BlockType::Line, Orientation::Up).translate(X_SQUARES as i8 / 2, 0);
 
-        let positions: Vec<Vec<(f32, f32)>> = (0..X_SQUARES)
-            .map(|x_index| {
-                (0..Y_SQUARES)
-                    .map(|y_index| {
-                        (
-                            f32::from(x_index) * SQUARE_SIZE,
-                            f32::from(y_index) * SQUARE_SIZE,
-                        )
-                    })
-                    .collect::<Vec<(f32, f32)>>()
-            })
-            .collect();
-
         MainState {
             squares,
             current_block,
-            positions,
             update_timer: 0,
             held_block: None,
             queue: generate_queue(),
