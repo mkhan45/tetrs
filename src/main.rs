@@ -4,7 +4,6 @@ use ggez::{
     event::EventHandler,
     graphics,
     graphics::{Color, DrawMode, DrawParam, MeshBuilder},
-    input::keyboard,
     input::keyboard::KeyCode,
     timer, Context, GameResult,
 };
@@ -16,8 +15,13 @@ use rand::thread_rng;
 
 extern crate rand;
 
+use std::collections::HashMap;
+
 mod block;
 use block::*;
+
+mod input;
+use input::*;
 
 const SCREEN_HEIGHT: f32 = 600.;
 const SCREEN_WIDTH: f32 = 300.;
@@ -32,6 +36,9 @@ const BORDER_SIZE: f32 = 0.5;
 
 const TICK_INTERVAL: usize = 60;
 
+const INPUT_INTERVAL: u16 = 5;
+const INPUT_REPEAT_DELAY: u16 = 8;
+
 const TYPES: [BlockType; 7] = [
     BlockType::Line,
     BlockType::Square,
@@ -45,6 +52,7 @@ const TYPES: [BlockType; 7] = [
 #[derive(Clone)]
 struct MainState {
     pub squares: Vec<Square>,
+    pub inputs: HashMap<InputAction, InputState>,
     pub current_block: Block,
     pub update_timer: usize,
     pub held_block: Option<BlockType>,
@@ -73,8 +81,21 @@ impl MainState {
         let current_block =
             Block::new(BlockType::Line, Orientation::Up).translate(X_SQUARES as i8 / 2, 0);
 
+        let inputs = [
+            (InputAction::Spin, InputState::default()),
+            (InputAction::SoftDrop, InputState::default()),
+            (InputAction::HardDrop, InputState::default()),
+            (InputAction::MoveLeft, InputState::default()),
+            (InputAction::MoveRight, InputState::default()),
+            (InputAction::Cache, InputState::default()),
+        ]
+        .iter()
+        .cloned()
+        .collect::<HashMap<InputAction, InputState>>();
+
         MainState {
             squares,
+            inputs,
             current_block,
             update_timer: 0,
             held_block: None,
@@ -98,11 +119,96 @@ impl MainState {
         self.queue = self.queued_queue;
         self.queued_queue.shuffle(&mut rng);
     }
+
+    fn update_inputs(&mut self, ctx: &Context) {
+        use ggez::input::keyboard::pressed_keys;
+        pressed_keys(&ctx)
+            .iter()
+            .filter_map(|keycode| match keycode {
+                KeyCode::Up | KeyCode::W => Some(InputAction::Spin),
+                KeyCode::Left | KeyCode::A => Some(InputAction::MoveLeft),
+                KeyCode::Right | KeyCode::D => Some(InputAction::MoveRight),
+                KeyCode::Down | KeyCode::S => Some(InputAction::SoftDrop),
+                KeyCode::C => Some(InputAction::Cache),
+                KeyCode::Space => Some(InputAction::HardDrop),
+                _ => None,
+            })
+            .for_each(|action| {
+                self.inputs.get_mut(&action).unwrap().set_pressed(true);
+            });
+
+        self.inputs.values_mut().for_each(|input_state| {
+            input_state.update();
+        });
+    }
 }
 
 impl EventHandler for MainState {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
         self.update_timer += 1;
+
+        self.update_inputs(ctx);
+        self.inputs
+            .clone()
+            .iter()
+            .for_each(|(action, input_state)| {
+                if input_state.repeated(INPUT_REPEAT_DELAY, INPUT_INTERVAL) {
+                    match *action {
+                        InputAction::MoveLeft => self.try_translate(-1, 0),
+                        InputAction::MoveRight => self.try_translate(1, 0),
+                        InputAction::SoftDrop => self.try_translate(0, 1),
+                        InputAction::HardDrop => {
+                            self.try_translate(0, self.current_block.max_drop(&self.squares));
+                            self.update_timer = TICK_INTERVAL;
+                        }
+                        InputAction::Cache => {
+                            if !self.used_hold {
+                                self.used_hold = true;
+                                let saved_current = self.current_block.blocktype;
+                                self.current_block = match self.held_block {
+                                    Some(blocktype) => Block::new(blocktype, Orientation::Up)
+                                        .translate(X_SQUARES / 2, -5),
+                                    None => {
+                                        //duplicated code oops
+                                        if self.block_index == 14 {
+                                            self.update_queue();
+                                            self.block_index = 0;
+                                        }
+
+                                        let new_blocktype = TYPES[self.queue[self.block_index]];
+                                        self.block_index += 1;
+
+                                        Block::new(new_blocktype, Orientation::Up)
+                                            .translate(X_SQUARES / 2, -5)
+                                    }
+                                };
+                                self.held_block = Some(saved_current);
+                            }
+                        }
+                        InputAction::Spin => {
+                            let rotated = self.current_block.rotate();
+
+                            let overflow = self.current_block.rotate().squares.iter().fold(
+                                0,
+                                |over, square| {
+                                    if square.pos.0 >= X_SQUARES
+                                        && square.pos.0 - X_SQUARES + 1 > over
+                                    {
+                                        square.pos.0 - X_SQUARES + 1
+                                    } else if square.pos.0 < 0 && square.pos.0 < over {
+                                        square.pos.0
+                                    } else {
+                                        over
+                                    }
+                                },
+                            );
+
+                            self.current_block = rotated.translate(-overflow, 0);
+                        }
+                    }
+                }
+            });
+
         if self.update_timer >= TICK_INTERVAL {
             self.update_timer = 0;
 
@@ -260,69 +366,6 @@ impl EventHandler for MainState {
         graphics::present(ctx).expect("error rendering");
 
         Ok(())
-    }
-
-    fn key_down_event(
-        &mut self,
-        _ctx: &mut Context,
-        keycode: keyboard::KeyCode,
-        _keymods: keyboard::KeyMods,
-        _repeat: bool,
-    ) {
-        match keycode {
-            KeyCode::Left  | KeyCode::H => self.try_translate(-1, 0),
-            KeyCode::Right | KeyCode::L => self.try_translate(1, 0),
-            KeyCode::Down  | KeyCode::J => self.try_translate(0, 1),
-            KeyCode::Up    | KeyCode::K => {
-                let rotated = self.current_block.rotate();
-
-                let overflow =
-                    self.current_block
-                        .rotate()
-                        .squares
-                        .iter()
-                        .fold(0, |over, square| {
-                            if square.pos.0 >= X_SQUARES && square.pos.0 - X_SQUARES + 1 > over {
-                                square.pos.0 - X_SQUARES + 1
-                            } else if square.pos.0 < 0 && square.pos.0 < over {
-                                square.pos.0
-                            } else {
-                                over
-                            }
-                        });
-
-                self.current_block = rotated.translate(-overflow, 0);
-            }
-            KeyCode::Space => {
-                self.try_translate(0, self.current_block.max_drop(&self.squares));
-                self.update_timer = TICK_INTERVAL;
-            }
-            KeyCode::C => {
-                if !self.used_hold {
-                    self.used_hold = true;
-                    let saved_current = self.current_block.blocktype;
-                    self.current_block = match self.held_block {
-                        Some(blocktype) => {
-                            Block::new(blocktype, Orientation::Up).translate(X_SQUARES / 2, -5)
-                        }
-                        None => {
-                            //duplicated code oops
-                            if self.block_index == 14 {
-                                self.update_queue();
-                                self.block_index = 0;
-                            }
-
-                            let new_blocktype = TYPES[self.queue[self.block_index]];
-                            self.block_index += 1;
-
-                            Block::new(new_blocktype, Orientation::Up).translate(X_SQUARES / 2, -5)
-                        }
-                    };
-                    self.held_block = Some(saved_current);
-                }
-            }
-            _ => {}
-        }
     }
 }
 
