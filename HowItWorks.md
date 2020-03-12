@@ -1,7 +1,7 @@
 # Main State
 
 The Main State contains the global data of the game.
-```
+```rust
 struct MainState {
     pub squares: Vec<Square>,
     pub inputs: HashMap<InputAction, InputState>,
