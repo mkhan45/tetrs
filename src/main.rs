@@ -23,6 +23,8 @@ use block::*;
 mod input;
 use input::*;
 
+mod actions;
+
 const SCREEN_HEIGHT: f32 = 600.;
 const SCREEN_WIDTH: f32 = 300.;
 const SCREEN_WIDTHER: f32 = SCREEN_WIDTH * 1.7;
@@ -65,6 +67,8 @@ struct MainState {
 
 pub fn generate_queue() -> [usize; 14] {
     let mut rng = thread_rng();
+
+    //generates an iterator [0, 1, 2, 3, 4, 5, 6, 0, 1, 2, 3, 4, 5, 6]
     let mut slice = (0..=6).chain(0..=6).collect::<Vec<usize>>();
     slice.shuffle(&mut rng);
     slice.as_slice().try_into().unwrap()
@@ -72,15 +76,18 @@ pub fn generate_queue() -> [usize; 14] {
 
 impl MainState {
     fn new() -> Self {
+        // makes squares a vector with capacity height * width
         let squares = Vec::with_capacity(
             (i16::from(X_SQUARES) * i16::from(Y_SQUARES))
                 .try_into()
                 .unwrap(),
         );
 
+        // creates current block at top center of board
         let current_block =
             Block::new(BlockType::Line, Orientation::Up).translate(X_SQUARES as i8 / 2, 0);
 
+        // initializes input states
         let inputs = [
             (InputAction::Spin, InputState::default()),
             (InputAction::SoftDrop, InputState::default()),
@@ -107,6 +114,7 @@ impl MainState {
         }
     }
 
+    /// tries to translate selected block by x and y
     fn try_translate(&mut self, x: i8, y: i8) {
         let translated = self.current_block.translate(x, y);
         if translated.is_valid(&self.squares) {
@@ -114,12 +122,16 @@ impl MainState {
         }
     }
 
+    /// swaps current queue with next queue
+    ///
+    /// I used two queues because the graphics need to be continuous
     fn update_queue(&mut self) {
         let mut rng = thread_rng();
         self.queue = self.queued_queue;
         self.queued_queue.shuffle(&mut rng);
     }
 
+    /// updates all input states
     fn update_inputs(&mut self, ctx: &Context) {
         use ggez::input::keyboard::pressed_keys;
         pressed_keys(&ctx)
@@ -157,66 +169,24 @@ impl EventHandler for MainState {
                         InputAction::MoveLeft => self.try_translate(-1, 0),
                         InputAction::MoveRight => self.try_translate(1, 0),
                         InputAction::SoftDrop => self.try_translate(0, 1),
-                        InputAction::HardDrop => {
-                            self.try_translate(0, self.current_block.max_drop(&self.squares));
-                            self.update_timer = TICK_INTERVAL;
-                        }
-                        InputAction::Cache => {
-                            if !self.used_hold {
-                                self.used_hold = true;
-                                let saved_current = self.current_block.blocktype;
-                                self.current_block = match self.held_block {
-                                    Some(blocktype) => Block::new(blocktype, Orientation::Up)
-                                        .translate(X_SQUARES / 2, -5),
-                                    None => {
-                                        //duplicated code oops
-                                        if self.block_index == 14 {
-                                            self.update_queue();
-                                            self.block_index = 0;
-                                        }
-
-                                        let new_blocktype = TYPES[self.queue[self.block_index]];
-                                        self.block_index += 1;
-
-                                        Block::new(new_blocktype, Orientation::Up)
-                                            .translate(X_SQUARES / 2, -5)
-                                    }
-                                };
-                                self.held_block = Some(saved_current);
-                            }
-                        }
-                        InputAction::Spin => {
-                            let rotated = self.current_block.rotate();
-
-                            let overflow = self.current_block.rotate().squares.iter().fold(
-                                0,
-                                |over, square| {
-                                    if square.pos.0 >= X_SQUARES
-                                        && square.pos.0 - X_SQUARES + 1 > over
-                                    {
-                                        square.pos.0 - X_SQUARES + 1
-                                    } else if square.pos.0 < 0 && square.pos.0 < over {
-                                        square.pos.0
-                                    } else {
-                                        over
-                                    }
-                                },
-                            );
-
-                            self.current_block = rotated.translate(-overflow, 0);
-                        }
+                        InputAction::HardDrop => self.hard_drop(),
+                        InputAction::Cache => self.cache(),
+                        InputAction::Spin => self.spin(),
                     }
                 }
             });
 
+        // only update on ticks
         if self.update_timer >= TICK_INTERVAL {
             self.update_timer = 0;
 
+            // create a temporary block that is the current_block translated down by one
             let translated = self.current_block.translate(0, 1);
 
             if translated.is_valid(&self.squares) {
                 self.current_block = translated;
             } else {
+                // update the queue if it's at the end
                 if self.block_index == 14 {
                     self.update_queue();
                     self.block_index = 0;
@@ -225,6 +195,8 @@ impl EventHandler for MainState {
                 let blocktype = TYPES[self.queue[self.block_index]];
                 self.block_index += 1;
 
+                // if any of the squares are over the top of the screen,
+                // end the game
                 if self
                     .current_block
                     .squares
@@ -242,34 +214,41 @@ impl EventHandler for MainState {
                         self.lines,
                         timer::time_since_start(ctx).as_secs()
                     );
-                    ggez::quit(ctx);
+                    ggez::event::quit(ctx);
                 };
 
+                // since the block is not valid, it is colliding,
+                // so place it on the board and set `used_hold`
+                // to false
                 self.squares
                     .append(&mut self.current_block.squares.to_vec());
                 self.used_hold = false;
 
-                let (min_y, max_y) = find_minmax(&self.current_block.squares);
+                // find and clear full rows or end the game at 40 lines
+                {
+                    let (min_y, max_y) = find_minmax(&self.current_block.squares);
 
-                (min_y..=max_y).for_each(|y| {
-                    let row_cnt = self
-                        .squares
-                        .iter()
-                        .filter(|square| square.pos.1 == y)
-                        .count();
+                    (min_y..=max_y).for_each(|y| {
+                        let row_cnt = self
+                            .squares
+                            .iter()
+                            .filter(|square| square.pos.1 == y)
+                            .count();
 
-                    if row_cnt >= X_SQUARES.try_into().unwrap() {
-                        self.lines += 1;
+                        if row_cnt >= X_SQUARES.try_into().unwrap() {
+                            self.lines += 1;
 
-                        if self.lines == 40 {
-                            println!("Time: {}", timer::time_since_start(ctx).as_secs());
-                            ggez::quit(ctx);
+                            if self.lines == 40 {
+                                println!("Time: {}", timer::time_since_start(ctx).as_secs());
+                                ggez::event::quit(ctx);
+                            }
+
+                            self.squares = clear_lines(&self.squares, y);
                         }
+                    });
+                }
 
-                        self.squares = clear_lines(&self.squares, y);
-                    }
-                });
-
+                // reset the current block
                 self.current_block = Block::new(blocktype, Orientation::Up)
                     .translate(X_SQUARES / 2, 0)
                     .translate(0, -5);
@@ -318,7 +297,6 @@ impl EventHandler for MainState {
             });
         }
 
-        //#[rustfmt::skip]
         for i in self.block_index..(self.block_index + 3) {
             let future_type = if i < 14 {
                 TYPES[self.queue[i]]
@@ -369,6 +347,8 @@ impl EventHandler for MainState {
     }
 }
 
+/// find the min and max height of squares in the block,
+/// used to find filled rows
 fn find_minmax(squares: &[Square]) -> (i8, i8) {
     squares.iter().fold((0, Y_SQUARES), |(min, max), current| {
         let current_y = current.pos.1;

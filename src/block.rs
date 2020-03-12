@@ -10,14 +10,18 @@ use crate::BORDER_SIZE;
 
 use std::convert::TryInto;
 
+/// A square that is or was part of a block
 #[derive(Clone, Copy, Debug)]
 pub struct Square {
+    /// Graphical component of the square
     pub rect: Rect,
+    /// Logical position of the square
     pub pos: (i8, i8),
     pub color: Color,
 }
 
 impl Square {
+    /// creates an identical square at the bottom of the screen
     fn bottom(x: i8) -> Self {
         Square {
             rect: Rect::new(f32::from(x) * SQUARE_SIZE, SCREEN_HEIGHT, 5., 5.),
@@ -26,7 +30,10 @@ impl Square {
         }
     }
 
+    /// finds the maximum distance a square could fall
     pub fn max_y_translate(&self, board: &[Square]) -> i8 {
+        // starts by filtering the board to only squares on the same x axis, and then
+        // looks down
         let max_square = board
             .iter()
             .filter(|square| square.pos.0 == self.pos.0 && square.pos.1 >= self.pos.1)
@@ -40,6 +47,7 @@ impl Square {
         max_square.pos.1 - self.pos.1
     }
 
+    /// returns a translated version of the square
     pub fn translate(&self, x: i8, y: i8) -> Square {
         let mut new_rect = self.rect;
         new_rect.translate([f32::from(x) * SQUARE_SIZE, f32::from(y) * SQUARE_SIZE]);
@@ -83,6 +91,10 @@ pub enum BlockType {
     Z,
 }
 
+/// A full block, in practice this is only used
+/// as the selected block or in the queue/cache
+/// since once a block is placed it becomes just
+/// squares on the board
 #[derive(Clone)]
 pub struct Block {
     pub squares: [Square; 4],
@@ -319,7 +331,6 @@ impl Block {
         }
     }
 
-    //could use Block::new() -> Option<Block> and then just increment stuff
     pub fn rotate(&self) -> Block {
         match (self.blocktype, self.orientation){
             (BlockType::Line, Orientation::Left) => Block::new(BlockType::Line, Orientation::Up).translate(2, 0),

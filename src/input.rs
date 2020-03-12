@@ -1,3 +1,6 @@
+/// The state of an arbitrary input command
+///
+/// Key independent
 #[derive(Copy, Clone, Default)]
 pub struct InputState {
     pressed_frames: u16,
@@ -10,6 +13,7 @@ impl InputState {
         self.pressed_this_frame = pressed;
     }
 
+    /// updates InputState internals
     pub fn update(&mut self) {
         if self.pressed_this_frame {
             self.pressed_this_frame = false;
