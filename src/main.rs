@@ -1,7 +1,7 @@
 extern crate ggez;
 
-use std::rc::Rc;
 use std::cell::RefCell;
+use std::rc::Rc;
 
 use ggez::{
     event,
@@ -149,12 +149,19 @@ impl MainState {
                 _ => None,
             })
             .for_each(|action| {
-                self.inputs.borrow_mut().get_mut(&action).unwrap().set_pressed(true);
+                self.inputs
+                    .borrow_mut()
+                    .get_mut(&action)
+                    .unwrap()
+                    .set_pressed(true);
             });
 
-        self.inputs.borrow_mut().values_mut().for_each(|input_state| {
-            input_state.update();
-        });
+        self.inputs
+            .borrow_mut()
+            .values_mut()
+            .for_each(|input_state| {
+                input_state.update();
+            });
     }
 }
 

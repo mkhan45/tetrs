@@ -11,13 +11,13 @@ use crate::BORDER_SIZE;
 use std::convert::TryInto;
 
 // Color::from_rgb can't be static
-static LINE_COLOR: Color = Color::new(42. / 255., 200. / 255., 255. / 255., 1.0); 
-static SQUARE_COLOR: Color = Color::new(19. / 255., 250. / 255., 67. / 255., 1.0); 
-static L_COLOR: Color = Color::new(77. / 255., 157. / 255., 224. / 255., 1.0); 
-static REVERSE_L_COLOR: Color = Color::new(237. / 255., 28. / 255., 36. / 255., 1.0); 
-static S_COLOR: Color = Color::new(73. / 255., 224. / 255., 110. / 255., 1.0); 
-static Z_COLOR: Color = Color::new(235. / 255., 81. / 255., 96. / 255., 1.0); 
-static T_COLOR: Color = Color::new(120. / 255., 114. / 255., 204. / 255., 1.0); 
+static LINE_COLOR: Color = Color::new(42. / 255., 200. / 255., 255. / 255., 1.0);
+static SQUARE_COLOR: Color = Color::new(19. / 255., 250. / 255., 67. / 255., 1.0);
+static L_COLOR: Color = Color::new(77. / 255., 157. / 255., 224. / 255., 1.0);
+static REVERSE_L_COLOR: Color = Color::new(237. / 255., 28. / 255., 36. / 255., 1.0);
+static S_COLOR: Color = Color::new(73. / 255., 224. / 255., 110. / 255., 1.0);
+static Z_COLOR: Color = Color::new(235. / 255., 81. / 255., 96. / 255., 1.0);
+static T_COLOR: Color = Color::new(120. / 255., 114. / 255., 204. / 255., 1.0);
 
 /// A square that is or was part of a block
 #[derive(Clone, Copy, Debug)]
@@ -123,217 +123,177 @@ pub fn color(blocktype: BlockType) -> Color {
     }
 }
 
+macro_rules! new_block {
+    ( $blocktype:expr, $orientation:expr, [ $( ($x:expr, $y:expr) ),* ] ) => {
+        Block {
+            squares: [
+                $(
+                    Square::new($x, $y, color($blocktype)),
+                 )*
+            ],
+            blocktype: $blocktype,
+            orientation: $orientation,
+        }
+    }
+}
+
+#[rustfmt::skip]
 impl Block {
     pub fn new(blocktype: BlockType, orientation: Orientation) -> Self {
+        // positions are done by (x, y) rather than (row, col)
         match (blocktype, orientation) {
-            (BlockType::Line, Orientation::Up) => Block {
-                squares: (0..4)
-                    .map(|y_index| Square::new(0, y_index, color(blocktype)))
-                    .collect::<Vec<Square>>()
-                    .as_slice()
-                    .try_into()
-                    .unwrap(),
-                blocktype,
-                orientation,
-            },
-            (BlockType::Line, Orientation::Left) => Block {
-                squares: (0..4)
-                    .map(|x_index| Square::new(x_index, 0, color(blocktype)))
-                    .collect::<Vec<Square>>()
-                    .as_slice()
-                    .try_into()
-                    .unwrap(),
-                blocktype,
-                orientation,
-            },
-            (BlockType::Square, Orientation::Up) => Block {
-                squares: [
-                    Square::new(0, 0, color(blocktype)),
-                    Square::new(0, 1, color(blocktype)),
-                    Square::new(1, 0, color(blocktype)),
-                    Square::new(1, 1, color(blocktype)),
-                ],
-
-                blocktype,
-                orientation,
-            },
-            (BlockType::L, Orientation::Up) => Block {
-                squares: [
-                    Square::new(0, 0, color(blocktype)),
-                    Square::new(0, 1, color(blocktype)),
-                    Square::new(0, 2, color(blocktype)),
-                    Square::new(1, 2, color(blocktype)),
-                ],
-
-                blocktype,
-                orientation,
-            },
-            (BlockType::L, Orientation::Right) => Block {
-                squares: [
-                    Square::new(0, 0, color(blocktype)),
-                    Square::new(0, 1, color(blocktype)),
-                    Square::new(1, 0, color(blocktype)),
-                    Square::new(2, 0, color(blocktype)),
-                ],
-
-                blocktype,
-                orientation,
-            },
-            (BlockType::L, Orientation::Down) => Block {
-                squares: [
-                    Square::new(0, 0, color(blocktype)),
-                    Square::new(1, 0, color(blocktype)),
-                    Square::new(1, 1, color(blocktype)),
-                    Square::new(1, 2, color(blocktype)),
-                ],
-
-                blocktype,
-                orientation,
-            },
-            (BlockType::L, Orientation::Left) => Block {
-                squares: [
-                    Square::new(0, 1, color(blocktype)),
-                    Square::new(1, 1, color(blocktype)),
-                    Square::new(2, 1, color(blocktype)),
-                    Square::new(2, 0, color(blocktype)),
-                ],
-
-                blocktype,
-                orientation,
-            },
-            (BlockType::ReverseL, Orientation::Up) => Block {
-                squares: [
-                    Square::new(1, 0, color(blocktype)),
-                    Square::new(1, 1, color(blocktype)),
-                    Square::new(1, 2, color(blocktype)),
-                    Square::new(0, 2, color(blocktype)),
-                ],
-
-                blocktype,
-                orientation,
-            },
-            (BlockType::ReverseL, Orientation::Right) => Block {
-                squares: [
-                    Square::new(0, 0, color(blocktype)),
-                    Square::new(0, 1, color(blocktype)),
-                    Square::new(1, 1, color(blocktype)),
-                    Square::new(2, 1, color(blocktype)),
-                ],
-
-                blocktype,
-                orientation,
-            },
-            (BlockType::ReverseL, Orientation::Down) => Block {
-                squares: [
-                    Square::new(0, 0, color(blocktype)),
-                    Square::new(1, 0, color(blocktype)),
-                    Square::new(0, 1, color(blocktype)),
-                    Square::new(0, 2, color(blocktype)),
-                ],
-
-                blocktype,
-                orientation,
-            },
-            (BlockType::ReverseL, Orientation::Left) => Block {
-                squares: [
-                    Square::new(0, 0, color(blocktype)),
-                    Square::new(1, 0, color(blocktype)),
-                    Square::new(2, 0, color(blocktype)),
-                    Square::new(2, 1, color(blocktype)),
-                ],
-
-                blocktype,
-                orientation,
-            },
-            (BlockType::S, Orientation::Up) => Block {
-                squares: [
-                    Square::new(0, 0, color(blocktype)),
-                    Square::new(0, 1, color(blocktype)),
-                    Square::new(1, 1, color(blocktype)),
-                    Square::new(1, 2, color(blocktype)),
-                ],
-
-                blocktype,
-                orientation,
-            },
-            (BlockType::S, Orientation::Left) => Block {
-                squares: [
-                    Square::new(0, 1, color(blocktype)),
-                    Square::new(1, 1, color(blocktype)),
-                    Square::new(1, 0, color(blocktype)),
-                    Square::new(2, 0, color(blocktype)),
-                ],
-
-                blocktype,
-                orientation,
-            },
-            (BlockType::Z, Orientation::Up) => Block {
-                squares: [
-                    Square::new(1, 0, color(blocktype)),
-                    Square::new(1, 1, color(blocktype)),
-                    Square::new(0, 1, color(blocktype)),
-                    Square::new(0, 2, color(blocktype)),
-                ],
-
-                blocktype,
-                orientation,
-            },
-            (BlockType::Z, Orientation::Left) => Block {
-                squares: [
-                    Square::new(0, 0, color(blocktype)),
-                    Square::new(1, 0, color(blocktype)),
-                    Square::new(1, 1, color(blocktype)),
-                    Square::new(2, 1, color(blocktype)),
-                ],
-
-                blocktype,
-                orientation,
-            },
-            (BlockType::T, Orientation::Up) => Block {
-                squares: [
-                    Square::new(1, 0, color(blocktype)),
-                    Square::new(0, 1, color(blocktype)),
-                    Square::new(1, 1, color(blocktype)),
-                    Square::new(2, 1, color(blocktype)),
-                ],
-
-                blocktype,
-                orientation,
-            },
-            (BlockType::T, Orientation::Right) => Block {
-                squares: [
-                    Square::new(0, 0, color(blocktype)),
-                    Square::new(0, 1, color(blocktype)),
-                    Square::new(0, 2, color(blocktype)),
-                    Square::new(1, 1, color(blocktype)),
-                ],
-
-                blocktype,
-                orientation,
-            },
-            (BlockType::T, Orientation::Down) => Block {
-                squares: [
-                    Square::new(0, 0, color(blocktype)),
-                    Square::new(1, 0, color(blocktype)),
-                    Square::new(2, 0, color(blocktype)),
-                    Square::new(1, 1, color(blocktype)),
-                ],
-
-                blocktype,
-                orientation,
-            },
-            (BlockType::T, Orientation::Left) => Block {
-                squares: [
-                    Square::new(1, 0, color(blocktype)),
-                    Square::new(1, 1, color(blocktype)),
-                    Square::new(1, 2, color(blocktype)),
-                    Square::new(0, 1, color(blocktype)),
-                ],
-
-                blocktype,
-                orientation,
-            },
-
+            (BlockType::Line, Orientation::Up) => {
+                new_block!(blocktype, orientation, 
+                    [
+                        (0, 0), 
+                        (0, 1),
+                        (0, 2),
+                        (0, 3)
+                    ]
+                )
+            }
+            (BlockType::Line, Orientation::Left) => {
+                new_block!(blocktype, orientation, 
+                    [(0, 0), (1, 0), (2, 0), (3, 0)]
+                )
+            }
+            (BlockType::Square, Orientation::Up) => {
+                new_block!(blocktype, orientation, 
+                    [(0, 0), (1, 0), 
+                     (0, 1), (1, 1)]
+                )
+            }
+            (BlockType::L, Orientation::Up) => {
+                new_block!(blocktype, orientation, 
+                    [(0, 0), 
+                     (0, 1), 
+                     (0, 2), (1, 2)]
+                )
+            }
+            (BlockType::L, Orientation::Right) => {
+                new_block!(blocktype, orientation, 
+                    [(0, 0), (1, 0), (2, 0),
+                     (0, 1)
+                    ]
+                )
+            }
+            (BlockType::L, Orientation::Down) => {
+                new_block!(blocktype, orientation, 
+                    [(0, 0), (1, 0), 
+                     (1, 1),
+                     (1, 2)
+                    ]
+                )
+            }
+            (BlockType::L, Orientation::Left) => {
+                new_block!(blocktype, orientation, 
+                    [                (2, 0),
+                     (0, 1), (1, 1), (2, 1)
+                    ]
+                )
+            }
+            (BlockType::ReverseL, Orientation::Up) => {
+                new_block!(blocktype, orientation, 
+                    [
+                             (1, 0),
+                             (1, 1),
+                     (0, 2), (1, 2)
+                    ]
+                )
+            }
+            (BlockType::ReverseL, Orientation::Right) => {
+                new_block!(blocktype, orientation, 
+                    [
+                     (0, 0),
+                     (0, 1), (1, 1), (2, 1)
+                    ]
+                )
+            }
+            (BlockType::ReverseL, Orientation::Down) => {
+                new_block!(blocktype, orientation, 
+                    [
+                     (0, 0), (1, 0), 
+                     (0, 1), 
+                     (0, 2)
+                    ]
+                )
+            }
+            (BlockType::ReverseL, Orientation::Left) => {
+                new_block!(blocktype, orientation, 
+                    [
+                     (0, 0), (1, 0), (2, 0), 
+                                     (2, 1)
+                    ]
+                )
+            }
+            (BlockType::S, Orientation::Up) => {
+                new_block!(blocktype, orientation, 
+                    [
+                     (0, 0),
+                     (0, 1), (1, 1),
+                             (1, 2)
+                    ]
+                )
+            }
+            (BlockType::S, Orientation::Left) => {
+                new_block!(blocktype, orientation, 
+                    [
+                             (1, 0), (2, 0),
+                     (0, 1), (1, 1)
+                    ]
+                )
+            }
+            (BlockType::Z, Orientation::Up) => {
+                new_block!(blocktype, orientation, 
+                    [
+                             (1, 0),
+                     (0, 1), (1, 1),
+                     (0, 2)
+                    ]
+                )
+            }
+            (BlockType::Z, Orientation::Left) => {
+                new_block!(blocktype, orientation, 
+                    [
+                     (0, 0), (1, 0), 
+                             (1, 1), (2, 1)
+                    ]
+                )
+            }
+            (BlockType::T, Orientation::Up) => {
+                new_block!(blocktype, orientation, 
+                    [
+                             (1, 0), 
+                     (0, 1), (1, 1), (2, 1)
+                    ]
+                )
+            }
+            (BlockType::T, Orientation::Right) => {
+                new_block!(blocktype, orientation, 
+                    [
+                     (0, 0), 
+                     (0, 1), (1, 1), 
+                     (0, 2)
+                    ]
+                )
+            }
+            (BlockType::T, Orientation::Down) => {
+                new_block!(blocktype, orientation, 
+                    [
+                     (0, 0), (1, 0), (2, 0), 
+                             (1, 1)
+                    ]
+                )
+            }
+            (BlockType::T, Orientation::Left) => {
+                new_block!(blocktype, orientation, 
+                    [
+                             (1, 0),
+                     (0, 1), (1, 1),
+                             (1, 2)
+                    ]
+                )
+            }
             _ => {
                 panic! {"invalid block, blocktype: {:?}, orientation: {:?}", blocktype, orientation}
             }
