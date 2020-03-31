@@ -123,17 +123,11 @@ pub fn color(blocktype: BlockType) -> Color {
     }
 }
 
-macro_rules! new_block {
-    ( $blocktype:expr, $orientation:expr, [ $( ($x:expr, $y:expr) ),* ] ) => {
-        Block {
-            squares: [
-                $(
-                    Square::new($x, $y, color($blocktype)),
-                 )*
-            ],
-            blocktype: $blocktype,
-            orientation: $orientation,
-        }
+fn block_from_squares(blocktype: BlockType, orientation: Orientation, squares: [(i8, i8); 4]) -> Block {
+    Block {
+        squares: squares.iter().map(|(x, y)| Square::new(*x, *y, color(blocktype))).collect::<Vec<Square>>().as_slice().try_into().unwrap(),
+        blocktype,
+        orientation,
     }
 }
 
@@ -143,7 +137,7 @@ impl Block {
         // positions are done by (x, y) rather than (row, col)
         match (blocktype, orientation) {
             (BlockType::Line, Orientation::Up) => {
-                new_block!(blocktype, orientation, 
+                block_from_squares(blocktype, orientation, 
                     [
                         (0, 0), 
                         (0, 1),
@@ -153,32 +147,32 @@ impl Block {
                 )
             }
             (BlockType::Line, Orientation::Left) => {
-                new_block!(blocktype, orientation, 
+                block_from_squares(blocktype, orientation, 
                     [(0, 0), (1, 0), (2, 0), (3, 0)]
                 )
             }
             (BlockType::Square, Orientation::Up) => {
-                new_block!(blocktype, orientation, 
+                block_from_squares(blocktype, orientation, 
                     [(0, 0), (1, 0), 
                      (0, 1), (1, 1)]
                 )
             }
             (BlockType::L, Orientation::Up) => {
-                new_block!(blocktype, orientation, 
+                block_from_squares(blocktype, orientation, 
                     [(0, 0), 
                      (0, 1), 
                      (0, 2), (1, 2)]
                 )
             }
             (BlockType::L, Orientation::Right) => {
-                new_block!(blocktype, orientation, 
+                block_from_squares(blocktype, orientation, 
                     [(0, 0), (1, 0), (2, 0),
                      (0, 1)
                     ]
                 )
             }
             (BlockType::L, Orientation::Down) => {
-                new_block!(blocktype, orientation, 
+                block_from_squares(blocktype, orientation, 
                     [(0, 0), (1, 0), 
                      (1, 1),
                      (1, 2)
@@ -186,14 +180,14 @@ impl Block {
                 )
             }
             (BlockType::L, Orientation::Left) => {
-                new_block!(blocktype, orientation, 
+                block_from_squares(blocktype, orientation, 
                     [                (2, 0),
                      (0, 1), (1, 1), (2, 1)
                     ]
                 )
             }
             (BlockType::ReverseL, Orientation::Up) => {
-                new_block!(blocktype, orientation, 
+                block_from_squares(blocktype, orientation, 
                     [
                              (1, 0),
                              (1, 1),
@@ -202,7 +196,7 @@ impl Block {
                 )
             }
             (BlockType::ReverseL, Orientation::Right) => {
-                new_block!(blocktype, orientation, 
+                block_from_squares(blocktype, orientation, 
                     [
                      (0, 0),
                      (0, 1), (1, 1), (2, 1)
@@ -210,7 +204,7 @@ impl Block {
                 )
             }
             (BlockType::ReverseL, Orientation::Down) => {
-                new_block!(blocktype, orientation, 
+                block_from_squares(blocktype, orientation, 
                     [
                      (0, 0), (1, 0), 
                      (0, 1), 
@@ -219,7 +213,7 @@ impl Block {
                 )
             }
             (BlockType::ReverseL, Orientation::Left) => {
-                new_block!(blocktype, orientation, 
+                block_from_squares(blocktype, orientation, 
                     [
                      (0, 0), (1, 0), (2, 0), 
                                      (2, 1)
@@ -227,7 +221,7 @@ impl Block {
                 )
             }
             (BlockType::S, Orientation::Up) => {
-                new_block!(blocktype, orientation, 
+                block_from_squares(blocktype, orientation, 
                     [
                      (0, 0),
                      (0, 1), (1, 1),
@@ -236,7 +230,7 @@ impl Block {
                 )
             }
             (BlockType::S, Orientation::Left) => {
-                new_block!(blocktype, orientation, 
+                block_from_squares(blocktype, orientation, 
                     [
                              (1, 0), (2, 0),
                      (0, 1), (1, 1)
@@ -244,7 +238,7 @@ impl Block {
                 )
             }
             (BlockType::Z, Orientation::Up) => {
-                new_block!(blocktype, orientation, 
+                block_from_squares(blocktype, orientation, 
                     [
                              (1, 0),
                      (0, 1), (1, 1),
@@ -253,7 +247,7 @@ impl Block {
                 )
             }
             (BlockType::Z, Orientation::Left) => {
-                new_block!(blocktype, orientation, 
+                block_from_squares(blocktype, orientation, 
                     [
                      (0, 0), (1, 0), 
                              (1, 1), (2, 1)
@@ -261,7 +255,7 @@ impl Block {
                 )
             }
             (BlockType::T, Orientation::Up) => {
-                new_block!(blocktype, orientation, 
+                block_from_squares(blocktype, orientation, 
                     [
                              (1, 0), 
                      (0, 1), (1, 1), (2, 1)
@@ -269,7 +263,7 @@ impl Block {
                 )
             }
             (BlockType::T, Orientation::Right) => {
-                new_block!(blocktype, orientation, 
+                block_from_squares(blocktype, orientation, 
                     [
                      (0, 0), 
                      (0, 1), (1, 1), 
@@ -278,7 +272,7 @@ impl Block {
                 )
             }
             (BlockType::T, Orientation::Down) => {
-                new_block!(blocktype, orientation, 
+                block_from_squares(blocktype, orientation, 
                     [
                      (0, 0), (1, 0), (2, 0), 
                              (1, 1)
@@ -286,7 +280,7 @@ impl Block {
                 )
             }
             (BlockType::T, Orientation::Left) => {
-                new_block!(blocktype, orientation, 
+                block_from_squares(blocktype, orientation, 
                     [
                              (1, 0),
                      (0, 1), (1, 1),
