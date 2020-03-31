@@ -1,4 +1,8 @@
 extern crate ggez;
+
+use std::rc::Rc;
+use std::cell::RefCell;
+
 use ggez::{
     event,
     event::EventHandler,
@@ -54,7 +58,7 @@ const TYPES: [BlockType; 7] = [
 #[derive(Clone)]
 struct MainState {
     pub squares: Vec<Square>,
-    pub inputs: HashMap<InputAction, InputState>,
+    pub inputs: Rc<RefCell<HashMap<InputAction, InputState>>>,
     pub current_block: Block,
     pub update_timer: usize,
     pub held_block: Option<BlockType>,
@@ -69,9 +73,9 @@ pub fn generate_queue() -> [usize; 14] {
     let mut rng = thread_rng();
 
     //generates an iterator [0, 1, 2, 3, 4, 5, 6, 0, 1, 2, 3, 4, 5, 6]
-    let mut slice = (0..=6).chain(0..=6).collect::<Vec<usize>>();
+    let mut slice = (0..=6).cycle().take(14).collect::<Vec<usize>>();
     slice.shuffle(&mut rng);
-    slice.as_slice().try_into().unwrap()
+    slice.as_slice().try_into().expect("error generating queue")
 }
 
 impl MainState {
@@ -102,7 +106,7 @@ impl MainState {
 
         MainState {
             squares,
-            inputs,
+            inputs: Rc::new(RefCell::new(inputs)),
             current_block,
             update_timer: 0,
             held_block: None,
@@ -123,7 +127,6 @@ impl MainState {
     }
 
     /// swaps current queue with next queue
-    ///
     /// I used two queues because the graphics need to be continuous
     fn update_queue(&mut self) {
         let mut rng = thread_rng();
@@ -146,10 +149,10 @@ impl MainState {
                 _ => None,
             })
             .for_each(|action| {
-                self.inputs.get_mut(&action).unwrap().set_pressed(true);
+                self.inputs.borrow_mut().get_mut(&action).unwrap().set_pressed(true);
             });
 
-        self.inputs.values_mut().for_each(|input_state| {
+        self.inputs.borrow_mut().values_mut().for_each(|input_state| {
             input_state.update();
         });
     }
@@ -162,6 +165,7 @@ impl EventHandler for MainState {
         self.update_inputs(ctx);
         self.inputs
             .clone()
+            .borrow()
             .iter()
             .for_each(|(action, input_state)| {
                 if input_state.repeated(INPUT_REPEAT_DELAY, INPUT_INTERVAL) {

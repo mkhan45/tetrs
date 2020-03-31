@@ -10,6 +10,15 @@ use crate::BORDER_SIZE;
 
 use std::convert::TryInto;
 
+// Color::from_rgb can't be static
+static LINE_COLOR: Color = Color::new(42. / 255., 200. / 255., 255. / 255., 1.0); 
+static SQUARE_COLOR: Color = Color::new(19. / 255., 250. / 255., 67. / 255., 1.0); 
+static L_COLOR: Color = Color::new(77. / 255., 157. / 255., 224. / 255., 1.0); 
+static REVERSE_L_COLOR: Color = Color::new(237. / 255., 28. / 255., 36. / 255., 1.0); 
+static S_COLOR: Color = Color::new(73. / 255., 224. / 255., 110. / 255., 1.0); 
+static Z_COLOR: Color = Color::new(235. / 255., 81. / 255., 96. / 255., 1.0); 
+static T_COLOR: Color = Color::new(120. / 255., 114. / 255., 204. / 255., 1.0); 
+
 /// A square that is or was part of a block
 #[derive(Clone, Copy, Debug)]
 pub struct Square {
@@ -104,13 +113,13 @@ pub struct Block {
 
 pub fn color(blocktype: BlockType) -> Color {
     match blocktype {
-        BlockType::Line => Color::new(0.2, 0.2, 0.8, 1.0),
-        BlockType::Square => Color::new(0.1, 1.0, 0.15, 1.0),
-        BlockType::L => Color::new(0.05, 0.05, 1.0, 1.0),
-        BlockType::ReverseL => Color::new(1.0, 0.25, 0.25, 1.0),
-        BlockType::S => Color::new(0.1, 1.0, 0.1, 1.0),
-        BlockType::Z => Color::new(1.0, 0.1, 0.1, 1.0),
-        BlockType::T => Color::new(0.2, 0.05, 0.9, 1.0),
+        BlockType::Line => LINE_COLOR,
+        BlockType::Square => SQUARE_COLOR,
+        BlockType::L => L_COLOR,
+        BlockType::ReverseL => REVERSE_L_COLOR,
+        BlockType::S => S_COLOR,
+        BlockType::Z => Z_COLOR,
+        BlockType::T => T_COLOR,
     }
 }
 
