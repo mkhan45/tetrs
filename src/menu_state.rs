@@ -1,7 +1,7 @@
 use ggez::{
     event::EventHandler,
+    graphics::{self, Color, DrawMode, DrawParam, Font, Rect, Scale, Text, TextFragment},
     Context, GameResult,
-    graphics::{self, Color, Rect, DrawMode, DrawParam, Text, TextFragment, Scale, Font},
 };
 
 use crate::main_state::{Signal, SignalState, StateTrait};
@@ -17,13 +17,27 @@ pub struct Button {
 }
 
 impl Button {
-    fn new(text: &str, font: Font, color: Color, hover_color: Color, x: f32, y: f32, width: f32, height: f32, signal: Signal) -> Self {
+    fn new(
+        text: &str,
+        font: Font,
+        color: Color,
+        hover_color: Color,
+        x: f32,
+        y: f32,
+        width: f32,
+        height: f32,
+        signal: Signal,
+    ) -> Self {
         Button {
             rect: Rect::new(x, y, width, height),
             hovered: false,
             color,
             hover_color,
-            text: Text::new(TextFragment::new(text).scale(Scale::uniform(0.75 * height)).font(font)),
+            text: Text::new(
+                TextFragment::new(text)
+                    .scale(Scale::uniform(0.75 * height))
+                    .font(font),
+            ),
             signal,
         }
     }
@@ -44,15 +58,36 @@ pub struct MenuState {
 
 impl MenuState {
     pub fn new(text_font: Font, game_over_data: Option<GameOverData>) -> Self {
-        let header_text = Text::new(TextFragment::new("TETRS").scale(Scale::uniform(120.0)).font(text_font));
-        let play_button = Button::new("PLAY", text_font, Color::new(1.0, 0.0, 0.0, 1.0), Color::new(0.8, 0.0, 0.0, 1.0), 117.5, 250.0, 275.0, 100.0, Signal::StartGame);
+        let header_text = Text::new(
+            TextFragment::new("TETRS")
+                .scale(Scale::uniform(120.0))
+                .font(text_font),
+        );
+        let play_button = Button::new(
+            "PLAY",
+            text_font,
+            Color::new(1.0, 0.0, 0.0, 1.0),
+            Color::new(0.8, 0.0, 0.0, 1.0),
+            117.5,
+            250.0,
+            275.0,
+            100.0,
+            Signal::StartGame,
+        );
 
         let game_over_text = game_over_data.map(|data| {
-            Text::new(TextFragment::new(format!("You Lose! \n Lines: {} \n Time: {}s", data.lines, data.time.as_secs()))
-                .font(text_font).scale(Scale::uniform(49.0)))
+            Text::new(
+                TextFragment::new(format!(
+                    "You Lose! \n Lines: {} \n Time: {}s",
+                    data.lines,
+                    data.time.as_secs()
+                ))
+                .font(text_font)
+                .scale(Scale::uniform(49.0)),
+            )
         });
 
-        MenuState{
+        MenuState {
             header_text,
             buttons: vec![play_button],
             game_over_text,
@@ -67,7 +102,7 @@ impl EventHandler for MenuState {
             let point = ggez::input::mouse::position(ctx);
             Rect::new(point.x, point.y, 1.0, 1.0)
         };
-        
+
         self.buttons.iter_mut().for_each(|btn| {
             btn.hovered = btn.rect.overlaps(&mouse_rect);
         });
@@ -80,7 +115,7 @@ impl EventHandler for MenuState {
 
         graphics::draw(ctx, &self.header_text, DrawParam::new().dest([62.5, 50.0]))?;
 
-        self.buttons.iter().for_each(|btn|{
+        self.buttons.iter().for_each(|btn| {
             draw_button(&btn, ctx).unwrap();
         });
 
@@ -92,17 +127,27 @@ impl EventHandler for MenuState {
         Ok(())
     }
 
-    fn mouse_button_down_event(&mut self, _ctx: &mut Context, button: ggez::input::mouse::MouseButton, x: f32, y: f32) {
+    fn mouse_button_down_event(
+        &mut self,
+        _ctx: &mut Context,
+        button: ggez::input::mouse::MouseButton,
+        x: f32,
+        y: f32,
+    ) {
         if let ggez::input::mouse::MouseButton::Left = button {
             let mouse_rect = Rect::new(x, y, 1.0, 1.0);
 
-            self.sent_signals = self.buttons.iter().filter_map(|btn| {
-                if btn.rect.overlaps(&mouse_rect) {
-                    Some(btn.signal)
-                } else {
-                    None
-                }
-            }).collect();
+            self.sent_signals = self
+                .buttons
+                .iter()
+                .filter_map(|btn| {
+                    if btn.rect.overlaps(&mouse_rect) {
+                        Some(btn.signal)
+                    } else {
+                        None
+                    }
+                })
+                .collect();
         }
     }
 }
@@ -124,6 +169,14 @@ fn draw_button(button: &Button, ctx: &mut Context) -> GameResult {
 
     let rect = graphics::Mesh::new_rectangle(ctx, DrawMode::fill(), button.rect, color).unwrap();
     graphics::draw(ctx, &rect, DrawParam::new()).unwrap();
-    graphics::draw(ctx, &button.text, DrawParam::new().dest([button.rect.x + (button.rect.w * 0.1825), button.rect.y + (button.rect.h * 0.125)])).unwrap();
+    graphics::draw(
+        ctx,
+        &button.text,
+        DrawParam::new().dest([
+            button.rect.x + (button.rect.w * 0.1825),
+            button.rect.y + (button.rect.h * 0.125),
+        ]),
+    )
+    .unwrap();
     Ok(())
 }

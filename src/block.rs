@@ -1,7 +1,7 @@
 use ggez::graphics::{Color, Rect};
 
-use std::convert::TryInto;
 use crate::consts::*;
+use std::convert::TryInto;
 
 // Color::from_rgb can't be static
 #[allow(clippy::eq_op)]
@@ -117,9 +117,19 @@ pub fn color(blocktype: BlockType) -> Color {
     }
 }
 
-fn block_from_squares(blocktype: BlockType, orientation: Orientation, squares: [(i8, i8); 4]) -> Block {
+fn block_from_squares(
+    blocktype: BlockType,
+    orientation: Orientation,
+    squares: [(i8, i8); 4],
+) -> Block {
     Block {
-        squares: squares.iter().map(|(x, y)| Square::new(*x, *y, color(blocktype))).collect::<Vec<Square>>().as_slice().try_into().unwrap(),
+        squares: squares
+            .iter()
+            .map(|(x, y)| Square::new(*x, *y, color(blocktype)))
+            .collect::<Vec<Square>>()
+            .as_slice()
+            .try_into()
+            .unwrap(),
         blocktype,
         orientation,
     }

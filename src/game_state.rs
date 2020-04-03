@@ -1,9 +1,9 @@
 use crate::block::*;
 use crate::input::*;
 
+use std::cell::RefCell;
 use std::collections::HashMap;
 use std::convert::TryInto;
-use std::cell::RefCell;
 use std::rc::Rc;
 
 use rand::seq::SliceRandom;
@@ -15,7 +15,7 @@ use crate::menu_state::GameOverData;
 
 use ggez::{
     event::EventHandler,
-    graphics::{self, Scale, Color, DrawMode, DrawParam, MeshBuilder, Font, Text, TextFragment},
+    graphics::{self, Color, DrawMode, DrawParam, Font, MeshBuilder, Scale, Text, TextFragment},
     input::keyboard::KeyCode,
     timer, Context, GameResult,
 };
@@ -51,8 +51,8 @@ impl GameState {
         // makes squares a vector with capacity height * width
         let squares = Vec::with_capacity(
             (i16::from(X_SQUARES) * i16::from(Y_SQUARES))
-            .try_into()
-            .unwrap(),
+                .try_into()
+                .unwrap(),
         );
 
         // creates current block at top center of board
@@ -68,14 +68,14 @@ impl GameState {
             (InputAction::MoveRight, InputState::default()),
             (InputAction::Cache, InputState::default()),
         ]
-            .iter()
-            .cloned()
-            .collect::<HashMap<InputAction, InputState>>();
+        .iter()
+        .cloned()
+        .collect::<HashMap<InputAction, InputState>>();
 
         let info_text = Text::new(
             TextFragment::new("Lines: 0 \n 0:00")
-            .font(font)
-            .scale(Scale::uniform(24.0)),
+                .font(font)
+                .scale(Scale::uniform(24.0)),
         );
 
         GameState {
@@ -125,12 +125,12 @@ impl GameState {
                 KeyCode::Space => Some(InputAction::HardDrop),
                 _ => None,
             })
-        .for_each(|action| {
-            self.inputs
-                .borrow_mut()
-                .get_mut(&action)
-                .unwrap()
-                .set_pressed(true);
+            .for_each(|action| {
+                self.inputs
+                    .borrow_mut()
+                    .get_mut(&action)
+                    .unwrap()
+                    .set_pressed(true);
             });
 
         self.inputs
@@ -187,16 +187,10 @@ impl EventHandler for GameState {
                 // end the game
                 if self
                     .current_block
-                        .squares
-                        .iter()
-                        .any(|square| square.pos.1 < 0)
+                    .squares
+                    .iter()
+                    .any(|square| square.pos.1 < 0)
                 {
-                    println!("Game Over");
-                    println!(
-                        "You completed {} lines in {}",
-                        self.lines,
-                        duration_display(timer::time_since_start(ctx))
-                    );
                     self.signals.push(Signal::EndGame(GameOverData {
                         lines: self.lines,
                         time: timer::time_since_start(ctx),
@@ -214,7 +208,7 @@ impl EventHandler for GameState {
                 {
                     let (min_y, max_y) = find_minmax(&self.current_block.squares);
 
-                    (min_y..=max_y).for_each(|y| {
+                    (min_y..max_y + 1).for_each(|y| {
                         let row_cnt = self
                             .squares
                             .iter()
@@ -223,14 +217,6 @@ impl EventHandler for GameState {
 
                         if row_cnt >= X_SQUARES.try_into().unwrap() {
                             self.lines += 1;
-
-                            if self.lines == 40 {
-                                println!("Time: {}", timer::time_since_start(ctx).as_secs());
-                                self.signals.push(Signal::EndGame(GameOverData {
-                                    lines: self.lines,
-                                    time: timer::time_since_start(ctx),
-                                }));
-                            }
 
                             self.squares = clear_lines(&self.squares, y);
                         }
@@ -241,7 +227,7 @@ impl EventHandler for GameState {
                 self.current_block = Block::new(blocktype, Orientation::Up)
                     .translate(X_SQUARES / 2, 0)
                     .translate(0, -5);
-                }
+            }
         }
         Ok(())
     }
@@ -260,10 +246,9 @@ impl EventHandler for GameState {
         graphics::draw(
             ctx,
             &self.info_text,
-            DrawParam::new()
-            .dest([SCREEN_WIDTH + 25., 10.])
+            DrawParam::new().dest([SCREEN_WIDTH + 25., 10.]),
         )
-            .expect("Error drawing info text");
+        .expect("Error drawing info text");
 
         let mut mesh = MeshBuilder::new();
 
@@ -307,9 +292,15 @@ impl EventHandler for GameState {
 
         if let Some(held_type) = self.held_block {
             let held = match held_type {
-                BlockType::Line => Block::new(BlockType::Line, Orientation::Left).translate(X_SQUARES + 1, 3),
-                BlockType::Square => Block::new(BlockType::Square, Orientation::Up).translate(X_SQUARES + 3, 2),
-                BlockType::T => Block::new(BlockType::T, Orientation::Up).translate(X_SQUARES + 2, 2),
+                BlockType::Line => {
+                    Block::new(BlockType::Line, Orientation::Left).translate(X_SQUARES + 1, 3)
+                }
+                BlockType::Square => {
+                    Block::new(BlockType::Square, Orientation::Up).translate(X_SQUARES + 3, 2)
+                }
+                BlockType::T => {
+                    Block::new(BlockType::T, Orientation::Up).translate(X_SQUARES + 2, 2)
+                }
                 _ => Block::new(held_type, Orientation::Up).translate(X_SQUARES + 3, 2),
             };
 
@@ -320,20 +311,20 @@ impl EventHandler for GameState {
 
         mesh.line(
             &[
-            [SCREEN_WIDTH as f32, 0.],
-            [SCREEN_WIDTH as f32, SCREEN_HEIGHT as f32],
+                [SCREEN_WIDTH as f32, 0.],
+                [SCREEN_WIDTH as f32, SCREEN_HEIGHT as f32],
             ],
             2.,
             Color::new(1.0, 1.0, 1.0, 1.0),
         )
-            .unwrap();
+        .unwrap();
 
         mesh.line(
             &[[SCREEN_WIDTH as f32, 150.], [SCREEN_WIDTHER as f32, 150.]],
             2.,
             Color::new(1.0, 1.0, 1.0, 1.0),
         )
-            .unwrap();
+        .unwrap();
 
         let mesh = &mesh.build(ctx).unwrap();
 
@@ -378,7 +369,7 @@ fn clear_lines(squares: &[Square], row_y: i8) -> Vec<Square> {
                 *square
             }
         })
-    .collect()
+        .collect()
 }
 
 fn duration_display(duration: std::time::Duration) -> String {

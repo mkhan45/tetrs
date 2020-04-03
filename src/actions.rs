@@ -1,6 +1,6 @@
-use crate::game_state::GameState;
 use crate::block::{Block, Orientation};
 use crate::consts::*;
+use crate::game_state::GameState;
 
 impl GameState {
     pub fn hard_drop(&mut self) {

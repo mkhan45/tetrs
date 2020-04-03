@@ -1,8 +1,8 @@
-use ggez::{event, GameResult, graphics::Font};
+use ggez::{event, graphics::Font, GameResult};
 
 mod game_state;
-mod menu_state;
 mod main_state;
+mod menu_state;
 use main_state::MainState;
 
 mod block;
@@ -19,8 +19,8 @@ fn main() -> GameResult {
         .window_setup(ggez::conf::WindowSetup::default().title("Tetrs"))
         .window_mode(
             ggez::conf::WindowMode::default()
-            .dimensions(SCREEN_WIDTHER, SCREEN_HEIGHT)
-            .resizable(false),
+                .dimensions(SCREEN_WIDTHER, SCREEN_HEIGHT)
+                .resizable(false),
         )
         .build()
         .expect("error building context");
@@ -33,4 +33,3 @@ fn main() -> GameResult {
 
     event::run(ctx, event_loop, main_state)
 }
-

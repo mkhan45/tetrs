@@ -1,7 +1,4 @@
-use ggez::{
-    event::EventHandler,
-    Context, GameResult,
-};
+use ggez::{event::EventHandler, Context, GameResult};
 
 use crate::game_state;
 use crate::menu_state::{self, GameOverData};
@@ -28,7 +25,7 @@ impl EventHandler for MainState {
         self.current_state.update(ctx)?;
 
         let mut signals = self.current_state.signals().clone();
-        signals.drain(..).for_each(|signal|{
+        signals.drain(..).for_each(|signal| {
             self.process_signal(signal);
         });
         self.current_state.signals().clear();
@@ -40,8 +37,15 @@ impl EventHandler for MainState {
         self.current_state.draw(ctx)
     }
 
-    fn mouse_button_down_event(&mut self, ctx: &mut Context, button: ggez::input::mouse::MouseButton, x: f32, y: f32) {
-        self.current_state.mouse_button_down_event(ctx, button, x, y);
+    fn mouse_button_down_event(
+        &mut self,
+        ctx: &mut Context,
+        button: ggez::input::mouse::MouseButton,
+        x: f32,
+        y: f32,
+    ) {
+        self.current_state
+            .mouse_button_down_event(ctx, button, x, y);
     }
 }
 
@@ -52,7 +56,8 @@ impl MainState {
                 self.current_state = Box::new(game_state::GameState::new(self.font));
             }
             Signal::EndGame(game_data) => {
-                self.current_state = Box::new(menu_state::MenuState::new(self.font, Some(game_data)));
+                self.current_state =
+                    Box::new(menu_state::MenuState::new(self.font, Some(game_data)));
             }
         }
     }
