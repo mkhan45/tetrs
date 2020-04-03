@@ -1,6 +1,7 @@
 use ggez::{event, GameResult};
 
 mod game_state;
+mod main_state;
 
 mod block;
 
