@@ -5,6 +5,7 @@ use ggez::{
 };
 
 use crate::main_state::{Signal, SignalState, StateTrait};
+use std::time::Duration;
 
 pub struct Button {
     rect: Rect,
@@ -28,19 +29,33 @@ impl Button {
     }
 }
 
+#[derive(Copy, Clone, Debug)]
+pub struct GameOverData {
+    pub lines: usize,
+    pub time: Duration,
+}
+
 pub struct MenuState {
     buttons: Vec<Button>,
     header_text: Text,
+    game_over_text: Option<Text>,
     sent_signals: Vec<Signal>,
 }
 
 impl MenuState {
-    pub fn new(text_font: Font) -> Self {
+    pub fn new(text_font: Font, game_over_data: Option<GameOverData>) -> Self {
         let header_text = Text::new(TextFragment::new("TETRS").scale(Scale::uniform(120.0)).font(text_font));
         let play_button = Button::new("PLAY", text_font, Color::new(1.0, 0.0, 0.0, 1.0), Color::new(0.8, 0.0, 0.0, 1.0), 117.5, 250.0, 275.0, 100.0, Signal::StartGame);
+
+        let game_over_text = game_over_data.map(|data| {
+            Text::new(TextFragment::new(format!("You Lose! \n Lines: {} \n Time: {}s", data.lines, data.time.as_secs()))
+                .font(text_font).scale(Scale::uniform(49.0)))
+        });
+
         MenuState{
             header_text,
             buttons: vec![play_button],
+            game_over_text,
             sent_signals: Vec::new(),
         }
     }
@@ -68,6 +83,10 @@ impl EventHandler for MenuState {
         self.buttons.iter().for_each(|btn|{
             draw_button(&btn, ctx).unwrap();
         });
+
+        if let Some(text) = &self.game_over_text {
+            graphics::draw(ctx, text, DrawParam::new().dest([150.0, 400.0]))?;
+        }
 
         graphics::present(ctx).expect("error rendering");
         Ok(())

@@ -11,11 +11,11 @@ use rand::thread_rng;
 
 use crate::consts::*;
 use crate::main_state::{Signal, SignalState, StateTrait};
+use crate::menu_state::GameOverData;
 
 use ggez::{
     event::EventHandler,
-    graphics,
-    graphics::{Color, DrawMode, DrawParam, MeshBuilder},
+    graphics::{self, Scale, Color, DrawMode, DrawParam, MeshBuilder, Font, Text, TextFragment},
     input::keyboard::KeyCode,
     timer, Context, GameResult,
 };
@@ -187,12 +187,10 @@ impl EventHandler for GameState {
                         self.lines,
                         duration_display(timer::time_since_start(ctx))
                     );
-                    println!(
-                        "Lose: {} {}",
-                        self.lines,
-                        timer::time_since_start(ctx).as_secs()
-                    );
-                    ggez::event::quit(ctx);
+                    self.signals.push(Signal::EndGame(GameOverData {
+                        lines: self.lines,
+                        time: timer::time_since_start(ctx),
+                    }));
                 };
 
                 // since the block is not valid, it is colliding,
@@ -218,7 +216,10 @@ impl EventHandler for GameState {
 
                             if self.lines == 40 {
                                 println!("Time: {}", timer::time_since_start(ctx).as_secs());
-                                ggez::event::quit(ctx);
+                                self.signals.push(Signal::EndGame(GameOverData {
+                                    lines: self.lines,
+                                    time: timer::time_since_start(ctx),
+                                }));
                             }
 
                             self.squares = clear_lines(&self.squares, y);

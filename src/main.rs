@@ -25,8 +25,10 @@ fn main() -> GameResult {
         .build()
         .expect("error building context");
 
+    let font = Font::new(ctx, "/fonts/Xolonium-Regular.ttf").unwrap();
     let main_state = &mut MainState {
-        current_state: Box::new(menu_state::MenuState::new(Font::new(ctx, "/fonts/Xolonium-Regular.ttf").unwrap()))
+        current_state: Box::new(menu_state::MenuState::new(font, None)),
+        font,
     };
 
     event::run(ctx, event_loop, main_state)

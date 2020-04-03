@@ -4,10 +4,12 @@ use ggez::{
 };
 
 use crate::game_state;
+use crate::menu_state::{self, GameOverData};
 
 #[derive(Clone, Copy, Debug)]
 pub enum Signal {
     StartGame,
+    EndGame(GameOverData),
 }
 
 pub trait SignalState {
@@ -18,6 +20,7 @@ pub trait StateTrait: SignalState + EventHandler {}
 
 pub struct MainState {
     pub current_state: Box<dyn StateTrait>,
+    pub font: ggez::graphics::Font,
 }
 
 impl EventHandler for MainState {
@@ -46,7 +49,10 @@ impl MainState {
     fn process_signal(&mut self, signal: Signal) {
         match signal {
             Signal::StartGame => {
-                self.current_state = Box::new(game_state::GameState::new());
+                self.current_state = Box::new(game_state::GameState::new(self.font));
+            }
+            Signal::EndGame(game_data) => {
+                self.current_state = Box::new(menu_state::MenuState::new(self.font, Some(game_data)));
             }
         }
     }
