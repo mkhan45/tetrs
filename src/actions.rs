@@ -1,7 +1,8 @@
-use crate::MainState;
-use crate::{Block, Orientation, TICK_INTERVAL, TYPES, X_SQUARES};
+use crate::game_state::GameState;
+use crate::block::{Block, Orientation};
+use crate::consts::*;
 
-impl MainState {
+impl GameState {
     pub fn hard_drop(&mut self) {
         self.try_translate(0, self.current_block.max_drop(&self.squares));
         self.update_timer = TICK_INTERVAL;

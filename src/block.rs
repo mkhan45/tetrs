@@ -1,16 +1,10 @@
 use ggez::graphics::{Color, Rect};
 
-use crate::SCREEN_HEIGHT;
-use crate::SQUARE_SIZE;
-
-use crate::X_SQUARES;
-use crate::Y_SQUARES;
-
-use crate::BORDER_SIZE;
-
 use std::convert::TryInto;
+use crate::consts::*;
 
 // Color::from_rgb can't be static
+#[allow(clippy::eq_op)]
 static LINE_COLOR: Color = Color::new(42. / 255., 200. / 255., 255. / 255., 1.0);
 static SQUARE_COLOR: Color = Color::new(19. / 255., 250. / 255., 67. / 255., 1.0);
 static L_COLOR: Color = Color::new(77. / 255., 157. / 255., 224. / 255., 1.0);
