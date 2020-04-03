@@ -10,6 +10,7 @@ use rand::seq::SliceRandom;
 use rand::thread_rng;
 
 use crate::consts::*;
+use crate::main_state::{Signal, SignalState, StateTrait};
 
 use ggez::{
     event::EventHandler,
@@ -31,6 +32,7 @@ pub struct GameState {
     pub used_hold: bool,
     pub queued_queue: [usize; 14],
     pub lines: usize,
+    pub signals: Vec<Signal>,
 }
 
 pub fn generate_queue() -> [usize; 14] {
@@ -79,6 +81,7 @@ impl GameState {
             used_hold: false,
             queued_queue: generate_queue(),
             lines: 0,
+            signals: Vec::new(),
         }
     }
 
@@ -321,6 +324,14 @@ impl EventHandler for GameState {
         Ok(())
     }
 }
+
+impl SignalState for GameState {
+    fn signals(&mut self) -> &mut Vec<Signal> {
+        &mut self.signals
+    }
+}
+
+impl StateTrait for GameState {}
 
 /// find the min and max height of squares in the block,
 /// used to find filled rows
