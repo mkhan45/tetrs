@@ -44,7 +44,6 @@ impl EventHandler for MainState {
 
 impl MainState {
     fn process_signal(&mut self, signal: Signal) {
-        dbg!(signal);
         match signal {
             Signal::StartGame => {
                 self.current_state = Box::new(game_state::GameState::new());

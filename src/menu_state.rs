@@ -1,7 +1,7 @@
 use ggez::{
     event::EventHandler,
     Context, GameResult,
-    graphics::{self, Color, Rect, DrawMode, DrawParam, Text, TextFragment, Scale},
+    graphics::{self, Color, Rect, DrawMode, DrawParam, Text, TextFragment, Scale, Font},
 };
 
 use crate::main_state::{Signal, SignalState, StateTrait};
@@ -16,13 +16,13 @@ pub struct Button {
 }
 
 impl Button {
-    fn new(text: &str, color: Color, hover_color: Color, x: f32, y: f32, width: f32, height: f32, signal: Signal) -> Self {
+    fn new(text: &str, font: Font, color: Color, hover_color: Color, x: f32, y: f32, width: f32, height: f32, signal: Signal) -> Self {
         Button {
             rect: Rect::new(x, y, width, height),
             hovered: false,
             color,
             hover_color,
-            text: Text::new(TextFragment::new(text).scale(Scale::uniform(0.25 * height))),
+            text: Text::new(TextFragment::new(text).scale(Scale::uniform(0.75 * height)).font(font)),
             signal,
         }
     }
@@ -30,13 +30,16 @@ impl Button {
 
 pub struct MenuState {
     buttons: Vec<Button>,
+    header_text: Text,
     sent_signals: Vec<Signal>,
 }
 
-impl Default for MenuState {
-    fn default() -> Self {
-        let play_button = Button::new("Play", Color::new(1.0, 0.0, 0.0, 1.0), Color::new(0.8, 0.0, 0.0, 1.0), 200.0, 200.0, 150.0, 100.0, Signal::StartGame);
+impl MenuState {
+    pub fn new(text_font: Font) -> Self {
+        let header_text = Text::new(TextFragment::new("TETRS").scale(Scale::uniform(120.0)).font(text_font));
+        let play_button = Button::new("PLAY", text_font, Color::new(1.0, 0.0, 0.0, 1.0), Color::new(0.8, 0.0, 0.0, 1.0), 117.5, 250.0, 275.0, 100.0, Signal::StartGame);
         MenuState{
+            header_text,
             buttons: vec![play_button],
             sent_signals: Vec::new(),
         }
@@ -60,6 +63,8 @@ impl EventHandler for MenuState {
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
         graphics::clear(ctx, graphics::Color::new(0.0, 0.0, 0.0, 1.0));
 
+        graphics::draw(ctx, &self.header_text, DrawParam::new().dest([62.5, 50.0]))?;
+
         self.buttons.iter().for_each(|btn|{
             draw_button(&btn, ctx).unwrap();
         });
@@ -68,8 +73,7 @@ impl EventHandler for MenuState {
         Ok(())
     }
 
-    fn mouse_button_down_event(&mut self, ctx: &mut Context, button: ggez::input::mouse::MouseButton, x: f32, y: f32) {
-        dbg!(button);
+    fn mouse_button_down_event(&mut self, _ctx: &mut Context, button: ggez::input::mouse::MouseButton, x: f32, y: f32) {
         if let ggez::input::mouse::MouseButton::Left = button {
             let mouse_rect = Rect::new(x, y, 1.0, 1.0);
 
@@ -101,7 +105,6 @@ fn draw_button(button: &Button, ctx: &mut Context) -> GameResult {
 
     let rect = graphics::Mesh::new_rectangle(ctx, DrawMode::fill(), button.rect, color).unwrap();
     graphics::draw(ctx, &rect, DrawParam::new()).unwrap();
-
-    graphics::draw(ctx, &button.text, DrawParam::new().dest([button.rect.x, button.rect.y])).unwrap();
+    graphics::draw(ctx, &button.text, DrawParam::new().dest([button.rect.x + (button.rect.w * 0.1825), button.rect.y + (button.rect.h * 0.125)])).unwrap();
     Ok(())
 }

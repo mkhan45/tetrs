@@ -1,4 +1,4 @@
-use ggez::{event, GameResult};
+use ggez::{event, GameResult, graphics::Font};
 
 mod game_state;
 mod menu_state;
@@ -14,7 +14,6 @@ mod actions;
 mod consts;
 use consts::*;
 
-
 fn main() -> GameResult {
     let (ctx, event_loop) = &mut ggez::ContextBuilder::new("Tetrs", "Fish")
         .window_setup(ggez::conf::WindowSetup::default().title("Tetrs"))
@@ -26,10 +25,8 @@ fn main() -> GameResult {
         .build()
         .expect("error building context");
 
-    let game_state = game_state::GameState::new();
-    let menu_state = menu_state::MenuState::default();
     let main_state = &mut MainState {
-        current_state: Box::new(menu_state)
+        current_state: Box::new(menu_state::MenuState::new(Font::new(ctx, "/fonts/Xolonium-Regular.ttf").unwrap()))
     };
 
     event::run(ctx, event_loop, main_state)
