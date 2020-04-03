@@ -32,6 +32,8 @@ pub struct GameState {
     pub used_hold: bool,
     pub queued_queue: [usize; 14],
     pub lines: usize,
+    pub font: Font,
+    pub info_text: Text,
     pub signals: Vec<Signal>,
 }
 
@@ -45,7 +47,7 @@ pub fn generate_queue() -> [usize; 14] {
 }
 
 impl GameState {
-    pub fn new() -> Self {
+    pub fn new(font: Font) -> Self {
         // makes squares a vector with capacity height * width
         let squares = Vec::with_capacity(
             (i16::from(X_SQUARES) * i16::from(Y_SQUARES))
@@ -70,6 +72,12 @@ impl GameState {
             .cloned()
             .collect::<HashMap<InputAction, InputState>>();
 
+        let info_text = Text::new(
+            TextFragment::new("Lines: 0 \n 0:00")
+            .font(font)
+            .scale(Scale::uniform(24.0)),
+        );
+
         GameState {
             squares,
             inputs: Rc::new(RefCell::new(inputs)),
@@ -81,6 +89,8 @@ impl GameState {
             used_hold: false,
             queued_queue: generate_queue(),
             lines: 0,
+            info_text,
+            font,
             signals: Vec::new(),
         }
     }
@@ -239,16 +249,19 @@ impl EventHandler for GameState {
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
         graphics::clear(ctx, graphics::Color::new(0.0, 0.0, 0.0, 1.0));
 
-        let info_text = graphics::Text::new(
-            format! {"Lines: {}\n{}", self.lines, duration_display(timer::time_since_start(ctx))},
-        );
+        if ggez::timer::ticks(ctx) % 60 == 0 {
+            self.info_text = Text::new(
+                TextFragment::new(format! {"Lines: {}\n{}", self.lines, duration_display(timer::time_since_start(ctx))})
+                .font(self.font)
+                .scale(Scale::uniform(24.0)),
+            );
+        }
 
         graphics::draw(
             ctx,
-            &info_text,
+            &self.info_text,
             DrawParam::new()
             .dest([SCREEN_WIDTH + 25., 10.])
-            .scale([1.3, 1.3]),
         )
             .expect("Error drawing info text");
 
@@ -293,7 +306,12 @@ impl EventHandler for GameState {
         }
 
         if let Some(held_type) = self.held_block {
-            let held = Block::new(held_type, Orientation::Up).translate(X_SQUARES + 2, 2);
+            let held = match held_type {
+                BlockType::Line => Block::new(BlockType::Line, Orientation::Left).translate(X_SQUARES + 1, 3),
+                BlockType::Square => Block::new(BlockType::Square, Orientation::Up).translate(X_SQUARES + 3, 2),
+                BlockType::T => Block::new(BlockType::T, Orientation::Up).translate(X_SQUARES + 2, 2),
+                _ => Block::new(held_type, Orientation::Up).translate(X_SQUARES + 3, 2),
+            };
 
             held.squares.iter().for_each(|square| {
                 mesh.rectangle(DrawMode::fill(), square.rect, color(held_type));
