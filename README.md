@@ -24,7 +24,7 @@ A resources folder with a folder called 'fonts' containing Xolonium-Regular.ttf 
 └── tetrs
 ```
 
-Compiled binaries for Windows and Linux should be in the releases tab of GitHub.
+Compiled binaries for Windows and Linux should be in [the releases tab](https://github.com/mkhan45/tetrs/releases) of GitHub.
 
 # Details
 
