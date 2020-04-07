@@ -34,11 +34,9 @@ impl GameState {
     }
 
     pub fn spin(&mut self) {
-        let rotated = self.current_block.rotate();
+        let mut rotated = self.current_block.rotate();
 
-        let overflow = self
-            .current_block
-            .rotate()
+        let overflow = rotated
             .squares
             .iter()
             .fold(0, |over, square| {
@@ -50,7 +48,10 @@ impl GameState {
                     over
                 }
             });
-
-        self.current_block = rotated.translate(-overflow, 0);
+        
+        rotated = rotated.translate(-overflow, 0);
+        if rotated.is_valid(&self.squares) {
+            self.current_block = rotated.translate(-overflow, 0);
+        }
     }
 }
