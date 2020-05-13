@@ -293,7 +293,7 @@ impl Block {
                 )
             }
             _ => {
-                panic! {"invalid block, blocktype: {:?}, orientation: {:?}", blocktype, orientation}
+                unreachable!();
             }
         }
     }
@@ -319,7 +319,7 @@ impl Block {
             (BlockType::T, Orientation::Right) => Block::new(BlockType::T, Orientation::Down).translate(-1, 0),
             (BlockType::T, Orientation::Down) => Block::new(BlockType::T, Orientation::Left),
             (BlockType::T, Orientation::Left) => Block::new(BlockType::T, Orientation::Up).translate(-1, 0),
-            _ => {panic!{"invalid block, blocktype: {:?}, orientation: {:?}", self.blocktype, self.orientation}}
+            _ => unreachable!(),
         }.translate(self.squares[0].pos.0, self.squares[1].pos.1)
     }
 
